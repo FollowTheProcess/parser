@@ -109,7 +109,8 @@ func Exact(match string) Parser {
 // ExactCaseInsensitive is case-insensitive, if you need a case-sensitive match, use [Exact] instead.
 func ExactCaseInsensitive(match string) Parser {
 	return func(input string) (Result, error) {
-		if input == "" {
+		inputLen := len(input)
+		if inputLen == 0 {
 			return Result{}, errors.New("ExactCaseInsensitive: cannot match on empty input")
 		}
 
@@ -117,20 +118,27 @@ func ExactCaseInsensitive(match string) Parser {
 			return Result{}, errors.New("ExactCaseInsensitive: input not valid utf-8")
 		}
 
-		if match == "" {
+		matchLen := len(match)
+		if matchLen == 0 {
 			return Result{}, errors.New("ExactCaseInsensitive: match must not be empty")
 		}
 
-		// TODO: strings.ToLower() is 100% correct but it allocates a new string each time,
-		// let's try and figure out how to do this without allocating if possible
-		start := strings.Index(strings.ToLower(input), strings.ToLower(match))
-		if start != 0 {
+		// Serves two purposes: It's a quick check that we'd never find a match and it guards
+		// the input slicing below
+		if matchLen > inputLen {
+			return Result{}, fmt.Errorf("ExactCaseInsensitive: match (%s) not in input", match)
+		}
+
+		// The beginning of input where the match string could possibly be
+		potentialMatch := input[:matchLen]
+
+		if !strings.EqualFold(potentialMatch, match) {
 			return Result{}, fmt.Errorf("ExactCaseInsensitive: match (%s) not in input", match)
 		}
 
 		return Result{
-			Value:     input[:len(match)], // We want to return the original match in it's original case
-			Remainder: input[len(match):],
+			Value:     potentialMatch, // We want to return the original match in it's original case
+			Remainder: input[matchLen:],
 		}, nil
 	}
 }
