@@ -384,6 +384,17 @@ func TestExactCaseInsensitive(t *testing.T) {
 			err:     "ExactCaseInsensitive: match (A single sentence but this one is longer so it can't possibly be matched) not in input",
 		},
 		{
+			name: "match same length as input",
+			want: parser.Result{
+				Value:     "A single sentence",
+				Remainder: "",
+			},
+			input:   "A single sentence",
+			match:   "A single sentence",
+			wantErr: false,
+			err:     "",
+		},
+		{
 			name:    "match not found",
 			want:    parser.Result{},
 			input:   "Nothing to see in here",
