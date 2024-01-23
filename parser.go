@@ -32,8 +32,13 @@ func Take(n int) Parser {
 		if n <= 0 {
 			return Result{}, fmt.Errorf("Take: n must be a non-zero positive integer, got %d", n)
 		}
+
 		if input == "" {
 			return Result{}, errors.New("Take: cannot take from empty input")
+		}
+
+		if !utf8.ValidString(input) {
+			return Result{}, errors.New("Take: input not valid utf-8")
 		}
 
 		runes := 0 // How many runes we've seen
@@ -75,6 +80,10 @@ func Exact(match string) Parser {
 			return Result{}, errors.New("Exact: cannot match on empty input")
 		}
 
+		if !utf8.ValidString(input) {
+			return Result{}, errors.New("Exact: input not valid utf-8")
+		}
+
 		if match == "" {
 			return Result{}, errors.New("Exact: match must not be empty")
 		}
@@ -104,6 +113,10 @@ func ExactCaseInsensitive(match string) Parser {
 			return Result{}, errors.New("ExactCaseInsensitive: cannot match on empty input")
 		}
 
+		if !utf8.ValidString(input) {
+			return Result{}, errors.New("ExactCaseInsensitive: input not valid utf-8")
+		}
+
 		if match == "" {
 			return Result{}, errors.New("ExactCaseInsensitive: match must not be empty")
 		}
@@ -131,9 +144,11 @@ func Char(char rune) Parser {
 			return Result{}, errors.New("Char: input text is empty")
 		}
 
-		// TODO: Should probably handle the decode error (r == RuneError and width == 1)
-		// strings aren't *guaranteed* to be valid utf-8. Need to google some test cases to exercise this
 		r, width := utf8.DecodeRuneInString(input)
+		if r == utf8.RuneError {
+			return Result{}, errors.New("Char: input not valid utf-8")
+		}
+
 		if r != char {
 			return Result{}, fmt.Errorf("Char: requested char (%s) not found in input", string(char))
 		}
@@ -162,6 +177,10 @@ func TakeWhile(predicate func(r rune) bool) Parser {
 	return func(input string) (Result, error) {
 		if input == "" {
 			return Result{}, errors.New("TakeWhile: input text is empty")
+		}
+
+		if !utf8.ValidString(input) {
+			return Result{}, errors.New("TakeWhile: input not valid utf-8")
 		}
 
 		if predicate == nil {
@@ -208,6 +227,10 @@ func TakeUntil(predicate func(r rune) bool) Parser {
 			return Result{}, errors.New("TakeUntil: input text is empty")
 		}
 
+		if !utf8.ValidString(input) {
+			return Result{}, errors.New("TakeUntil: input not valid utf-8")
+		}
+
 		if predicate == nil {
 			return Result{}, errors.New("TakeUntil: predicate must be a non-nil function")
 		}
@@ -247,13 +270,14 @@ func OneOf(chars string) Parser {
 			return Result{}, errors.New("OneOf: chars must not be empty")
 		}
 
-		// TODO: Should probably handle the decode error (inputChar == RuneError and width == 1)
-		// strings aren't *guaranteed* to be valid utf-8. Need to google some test cases to exercise this
-		inputChar, width := utf8.DecodeRuneInString(input)
+		r, width := utf8.DecodeRuneInString(input)
+		if r == utf8.RuneError {
+			return Result{}, errors.New("OneOf: input not valid utf-8")
+		}
 
 		found := false // Whether we've actually found a match
 		for _, char := range chars {
-			if char == inputChar {
+			if char == r {
 				// Found it
 				found = true
 				break

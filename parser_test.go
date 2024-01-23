@@ -75,6 +75,14 @@ func TestTake(t *testing.T) {
 			err:     "Take: requested n (21) chars but input had only 20 utf-8 chars",
 		},
 		{
+			name:    "bad utf8",
+			want:    parser.Result{},
+			input:   "\xf8\xa1\xa1\xa1\xa1",
+			n:       3,
+			wantErr: true,
+			err:     "Take: input not valid utf-8",
+		},
+		{
 			name: "simple",
 			want: parser.Result{
 				Value:     "Hello I am",
@@ -207,6 +215,14 @@ func TestExact(t *testing.T) {
 			err:     "Exact: cannot match on empty input",
 		},
 		{
+			name:    "bad utf8",
+			want:    parser.Result{},
+			input:   "\xf8\xa1\xa1\xa1\xa1",
+			match:   "something",
+			wantErr: true,
+			err:     "Exact: input not valid utf-8",
+		},
+		{
 			name:    "empty input and match",
 			want:    parser.Result{},
 			input:   "",
@@ -334,6 +350,14 @@ func TestExactCaseInsensitive(t *testing.T) {
 			match:   "something",
 			wantErr: true,
 			err:     "ExactCaseInsensitive: cannot match on empty input",
+		},
+		{
+			name:    "bad utf8",
+			want:    parser.Result{},
+			input:   "\xf8\xa1\xa1\xa1\xa1",
+			match:   "something",
+			wantErr: true,
+			err:     "ExactCaseInsensitive: input not valid utf-8",
 		},
 		{
 			name:    "empty input and match",
@@ -467,6 +491,14 @@ func TestChar(t *testing.T) {
 			err:     "Char: input text is empty",
 		},
 		{
+			name:    "bad utf8",
+			want:    parser.Result{},
+			input:   "\xf8\xa1\xa1\xa1\xa1",
+			char:    'x',
+			wantErr: true,
+			err:     "Char: input not valid utf-8",
+		},
+		{
 			name:    "not found",
 			want:    parser.Result{},
 			input:   "something",
@@ -546,6 +578,14 @@ func TestTakeWhile(t *testing.T) {
 			predicate: nil, // Shouldn't matter as it should never get called
 			wantErr:   true,
 			err:       "TakeWhile: input text is empty",
+		},
+		{
+			name:      "bad utf8",
+			want:      parser.Result{},
+			input:     "\xf8\xa1\xa1\xa1\xa1",
+			predicate: nil, // Shouldn't matter as it should never get called
+			wantErr:   true,
+			err:       "TakeWhile: input not valid utf-8",
 		},
 		{
 			name:      "nil predicate", // Good libraries don't panic
@@ -638,6 +678,14 @@ func TestTakeUntil(t *testing.T) {
 			predicate: nil, // Shouldn't matter as it should never get called
 			wantErr:   true,
 			err:       "TakeUntil: input text is empty",
+		},
+		{
+			name:      "bad utf8",
+			want:      parser.Result{},
+			input:     "\xf8\xa1\xa1\xa1\xa1",
+			predicate: nil, // Shouldn't matter as it should never get called
+			wantErr:   true,
+			err:       "TakeUntil: input not valid utf-8",
 		},
 		{
 			name:      "nil predicate", // Good libraries don't panic
@@ -746,6 +794,14 @@ func TestOneOf(t *testing.T) {
 			chars:   "",
 			wantErr: true,
 			err:     "OneOf: input text is empty",
+		},
+		{
+			name:    "bad utf8",
+			want:    parser.Result{},
+			input:   "\xf8\xa1\xa1\xa1\xa1",
+			chars:   "doesn't matter",
+			wantErr: true,
+			err:     "OneOf: input not valid utf-8",
 		},
 		{
 			name: "match a",
