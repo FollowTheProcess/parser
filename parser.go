@@ -279,6 +279,9 @@ func OneOf(chars string) Parser[string] {
 //
 // It is particularly useful for parsing a section of string input, then converting
 // that captured string to another type.
+//
+// If the provided parser or the mapping function 'fn' return an error, Map will
+// bubble up this error to the caller.
 func Map[T1, T2 any](parser Parser[T1], fn func(T1) (T2, error)) Parser[T2] {
 	return func(input string) (T2, string, error) {
 		var zero T2
