@@ -158,8 +158,8 @@ func Char(char rune) Parser[string] {
 //
 // If the predicate doesn't return false before the entire input is consumed, an error will be returned.
 //
-// A predicate that never returns true will leave the input unparsed and return a [Result] who's
-// value is an empty string, and who's remainder is the entire input.
+// A predicate that never returns true will leave the entire input unparsed and return a
+// value that is an empty string, and a remainder that is the entire input.
 func TakeWhile(predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
