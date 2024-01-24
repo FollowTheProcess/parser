@@ -274,3 +274,35 @@ func OneOf(chars string) Parser[string] {
 		return input[:width], input[width:], nil
 	}
 }
+
+// Map returns a [Parser] that applies a function to the result of another parser.
+//
+// It is particularly useful for parsing a section of string input, then converting
+// that captured string to another type.
+func Map[T1, T2 any](parser Parser[T1], fn func(T1) (T2, error)) Parser[T2] {
+	return func(input string) (T2, string, error) {
+		var zero T2
+
+		// Note: Since we're applying the function to another parser
+		// we don't need to check for empty input or invalid utf-8
+		// because the other parser will enforce it's own invariants
+
+		if fn == nil {
+			return zero, "", errors.New("Map: fn must be a non-nil function")
+		}
+
+		// Apply the parser to the input
+		value, remainder, err := parser(input)
+		if err != nil {
+			return zero, "", fmt.Errorf("Map: parser returned error: %w", err)
+		}
+
+		// Now apply the map function to the value returned from that
+		newValue, err := fn(value)
+		if err != nil {
+			return zero, "", fmt.Errorf("Map: fn returned error: %w", err)
+		}
+
+		return newValue, remainder, nil
+	}
+}

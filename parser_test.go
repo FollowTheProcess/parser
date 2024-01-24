@@ -1,8 +1,10 @@
 package parser_test
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 	"unicode"
 
@@ -932,6 +934,91 @@ func TestOneOf(t *testing.T) {
 	}
 }
 
+func TestMap(t *testing.T) {
+	type test[T1, T2 any] struct {
+		name      string               // Identifying test case name
+		input     string               // Entire input to be parsed
+		p         parser.Parser[T1]    // The parser to have the map applied to
+		fn        func(T1) (T2, error) // The function the map will apply to the result of p
+		value     T2                   // The parsed value
+		remainder string               // The remaining unparsed input
+		err       string               // The expected error message (if there is one)
+		wantErr   bool
+	}
+
+	// Here we're going to make it convert strings to ints
+	tests := []test[string, int]{
+		{
+			name:      "empty input",
+			input:     "",
+			p:         parser.Char('x'),
+			fn:        func(input string) (int, error) { return 0, nil },
+			value:     0,
+			remainder: "",
+			err:       "Map: parser returned error: Char: input text is empty",
+			wantErr:   true,
+		},
+		{
+			name:      "nil fn",
+			input:     "",
+			p:         parser.Char('x'),
+			fn:        nil,
+			value:     0,
+			remainder: "",
+			err:       "Map: fn must be a non-nil function",
+			wantErr:   true,
+		},
+		{
+			name:      "map fn error",
+			input:     "blah blah blah",
+			p:         parser.TakeUntil(unicode.IsSpace),
+			fn:        func(input string) (int, error) { return 0, errors.New("uh oh!") },
+			value:     0,
+			remainder: "",
+			err:       "Map: fn returned error: uh oh!",
+			wantErr:   true,
+		},
+		{
+			name:      "take 5",
+			input:     "Hello, World",
+			p:         parser.Take(5),
+			fn:        func(input string) (int, error) { return len(input), nil },
+			value:     5,
+			remainder: ", World",
+			err:       "",
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.Map(tt.p, tt.fn)(tt.input)
+
+			// Should only error if we wanted one
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			}
+
+			// If we did get an error, the message should match what we expect
+			if err != nil {
+				if msg := err.Error(); msg != tt.err {
+					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
+				}
+			}
+
+			// The value should be as expected
+			if value != tt.value {
+				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
+			}
+
+			// Likewise the remainder
+			if remainder != tt.remainder {
+				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
+			}
+		})
+	}
+}
+
 func BenchmarkTake(b *testing.B) {
 	input := "Please take some chars from me"
 
@@ -1012,6 +1099,20 @@ func BenchmarkOneOf(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, _, err := parser.OneOf(chars)(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMap(b *testing.B) {
+	input := "Hello, World!"
+
+	mapper := func(input string) (int, error) { return len(input), nil }
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.Map(parser.Take(5), mapper)(input)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -1125,4 +1226,19 @@ func ExampleOneOf() {
 
 	// Output: Value: "a"
 	// Remainder: "bcdefg"
+}
+
+func ExampleMap() {
+	input := "27 <- this is a number" // Let's convert it to an int!
+
+	value, remainder, err := parser.Map(parser.Take(2), strconv.Atoi)(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value %[1]d is type %[1]T\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value 27 is type int
+	// Remainder: " <- this is a number"
 }
