@@ -13,13 +13,13 @@ import (
 // Parser is the core parsing function that all parser functions return, they can be combined and composed
 // to parse complex grammars.
 //
-// Each Parser returns the parsed section of the input, the remaining unparsed input and an error.
-type Parser func(input string) (value, remainder string, err error)
+// Each Parser is generic over type T and returns the parsed value from the input, the remaining unparsed input and an error.
+type Parser[T any] func(input string) (value T, remainder string, err error)
 
 // Take returns a [Parser] that consumes n utf-8 chars from the input.
 //
 // If n is less than or equal to 0, or greater than the number of utf-8 chars in the input, an error will be returned.
-func Take(n int) Parser {
+func Take(n int) Parser[string] {
 	return func(input string) (string, string, error) {
 		if n <= 0 {
 			return "", "", fmt.Errorf("Take: n must be a non-zero positive integer, got %d", n)
@@ -63,7 +63,7 @@ func Take(n int) Parser {
 // An empty match string or empty input (i.e. "") will also return an error.
 //
 // Exact is case-sensitive, if you need a case-insensitive match, use [ExactCaseInsensitive] instead.
-func Exact(match string) Parser {
+func Exact(match string) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
 			return "", "", errors.New("Exact: cannot match on empty input")
@@ -93,7 +93,7 @@ func Exact(match string) Parser {
 // An empty match string or empty input (i.e. "") will also return an error.
 //
 // ExactCaseInsensitive is case-insensitive, if you need a case-sensitive match, use [Exact] instead.
-func ExactCaseInsensitive(match string) Parser {
+func ExactCaseInsensitive(match string) Parser[string] {
 	return func(input string) (string, string, error) {
 		inputLen := len(input)
 		if inputLen == 0 {
@@ -129,7 +129,7 @@ func ExactCaseInsensitive(match string) Parser {
 // Char returns a [Parser] that consumes a single exact, case-sensitive utf-8 character from the input.
 //
 // If the first char in the input is not the requested char, an error will be returned.
-func Char(char rune) Parser {
+func Char(char rune) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
 			return "", "", errors.New("Char: input text is empty")
@@ -160,7 +160,7 @@ func Char(char rune) Parser {
 //
 // A predicate that never returns true will leave the input unparsed and return a [Result] who's
 // value is an empty string, and who's remainder is the entire input.
-func TakeWhile(predicate func(r rune) bool) Parser {
+func TakeWhile(predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
 			return "", "", errors.New("TakeWhile: input text is empty")
@@ -205,7 +205,7 @@ func TakeWhile(predicate func(r rune) bool) Parser {
 //
 // A predicate that never returns false will leave the entire input unparsed and return a
 // value that is an empty string, and a remainder that is the entire input.
-func TakeUntil(predicate func(r rune) bool) Parser {
+func TakeUntil(predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
 			return "", "", errors.New("TakeUntil: input text is empty")
@@ -241,7 +241,7 @@ func TakeUntil(predicate func(r rune) bool) Parser {
 //
 // If the input or chars is empty, an error will be returned.
 // Likewise if none of the chars was recognised.
-func OneOf(chars string) Parser {
+func OneOf(chars string) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
 			return "", "", errors.New("OneOf: input text is empty")
