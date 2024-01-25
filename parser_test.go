@@ -794,6 +794,137 @@ func TestTakeUntil(t *testing.T) {
 	}
 }
 
+func TestTakeTo(t *testing.T) {
+	tests := []struct {
+		name      string // Identifying test case name
+		input     string // Entire input to be parsed
+		match     string // The exact string to stop at
+		value     string // The parsed value
+		remainder string // The remaining unparsed input
+		err       string // The expected error message (if there is one)
+		wantErr   bool   // Whether it should have returned an error
+	}{
+		{
+			name:      "empty input",
+			input:     "",
+			match:     "something",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeTo: input text is empty",
+		},
+		{
+			name:      "bad utf8",
+			input:     "\xf8\xa1\xa1\xa1\xa1",
+			match:     "something",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeTo: input not valid utf-8",
+		},
+		{
+			name:      "empty input and match",
+			input:     "",
+			match:     "",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeTo: input text is empty",
+		},
+		{
+			name:      "empty match",
+			input:     "some text",
+			match:     "",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeTo: match must not be empty",
+		},
+		{
+			name:      "no match",
+			input:     "a long sentence",
+			match:     "not here",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeTo: match (not here) not in input",
+		},
+		{
+			name:      "simple",
+			input:     "lots of stuff KEYWORD more stuff",
+			match:     "KEYWORD",
+			value:     "lots of stuff ",
+			remainder: "KEYWORD more stuff",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "match at end of input",
+			input:     "blah blah lots of inputeof",
+			match:     "eof",
+			value:     "blah blah lots of input",
+			remainder: "eof",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "match at start of input",
+			input:     "eofblah blah lots of input",
+			match:     "eof",
+			value:     "",
+			remainder: "eofblah blah lots of input",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "multiple matches",
+			input:     "blaheof blah eof lots of inputeof",
+			match:     "eof",
+			value:     "blah",
+			remainder: "eof blah eof lots of inputeof",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "match utf8",
+			input:     "abcdef語ç日ð本Ê語",
+			match:     "語ç日",
+			value:     "abcdef",
+			remainder: "語ç日ð本Ê語",
+			wantErr:   false,
+			err:       "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.TakeTo(tt.match)(tt.input)
+
+			// Should only error if we wanted one
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			}
+
+			// If we did get an error, the message should match what we expect
+			if err != nil {
+				if msg := err.Error(); msg != tt.err {
+					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
+				}
+			}
+
+			// The value should be as expected
+			if value != tt.value {
+				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
+			}
+
+			// Likewise the remainder
+			if remainder != tt.remainder {
+				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
+			}
+		})
+	}
+}
+
 func TestOneOf(t *testing.T) {
 	tests := []struct {
 		name      string // Identifying test case name
@@ -1345,6 +1476,18 @@ func BenchmarkTakeUntil(b *testing.B) {
 	}
 }
 
+func BenchmarkTakeTo(b *testing.B) {
+	input := "some words KEYWORD the rest"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.TakeTo("KEYWORD")(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkOneOf(b *testing.B) {
 	input := "abcdef"
 	chars := "abc"
@@ -1488,6 +1631,21 @@ func ExampleTakeUntil() {
 
 	// Output: Value: "something"
 	// Remainder: " <- first whitespace is here"
+}
+
+func ExampleTakeTo() {
+	input := "lots of stuff KEYWORD more stuff"
+
+	value, remainder, err := parser.TakeTo("KEYWORD")(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value: %q\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value: "lots of stuff "
+	// Remainder: "KEYWORD more stuff"
 }
 
 func ExampleOneOf() {
