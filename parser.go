@@ -239,6 +239,8 @@ func TakeUntil(predicate func(r rune) bool) Parser[string] {
 
 // OneOf returns a [Parser] that recognises one of the provided characters from the start of input.
 //
+// If you want to match anything other than the provided char set, use [NoneOf].
+//
 // If the input or chars is empty, an error will be returned.
 // Likewise if none of the chars was recognised.
 func OneOf(chars string) Parser[string] {
