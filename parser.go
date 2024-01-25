@@ -318,6 +318,43 @@ func NoneOf(chars string) Parser[string] {
 	}
 }
 
+// AnyOf returns a [Parser] that continues taking characters so long as they are contained in the
+// passed in set of chars.
+//
+// If the input or chars is empty, an error will be returned.
+// Likewise if none of the chars is present.
+func AnyOf(chars string) Parser[string] {
+	return func(input string) (string, string, error) {
+		if input == "" {
+			return "", "", errors.New("AnyOf: input text is empty")
+		}
+
+		if chars == "" {
+			return "", "", errors.New("AnyOf: chars must not be empty")
+		}
+
+		if !utf8.ValidString(input) {
+			return "", "", errors.New("AnyOf: input not valid utf-8")
+		}
+
+		end := 0 // The end of the matching sequence
+		for pos, char := range input {
+			if !strings.ContainsRune(chars, char) {
+				end = pos
+				break
+			}
+		}
+
+		// If we've broken the loop but end is still 0, there was no matches
+		// in the entire input
+		if end == 0 {
+			return "", "", fmt.Errorf("AnyOf: no match for any char in (%s) found in input", chars)
+		}
+
+		return input[:end], input[end:], nil
+	}
+}
+
 // Map returns a [Parser] that applies a function to the result of another parser.
 //
 // It is particularly useful for parsing a section of string input, then converting
