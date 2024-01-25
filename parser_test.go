@@ -934,6 +934,137 @@ func TestOneOf(t *testing.T) {
 	}
 }
 
+func TestNoneOf(t *testing.T) {
+	tests := []struct {
+		name      string // Identifying test case name
+		input     string // Entire input to be parsed
+		chars     string // The chars to match one of
+		value     string // The parsed value
+		remainder string // The remaining unparsed input
+		err       string // The expected error message (if there is one)
+		wantErr   bool   // Whether it should have returned an error
+	}{
+		{
+			name:      "empty input",
+			input:     "",
+			chars:     "abc", // Doesn't matter
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "NoneOf: input text is empty",
+		},
+		{
+			name:      "empty chars",
+			input:     "some input",
+			chars:     "",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "NoneOf: chars must not be empty",
+		},
+		{
+			name:      "empty input and chars",
+			input:     "",
+			chars:     "",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "NoneOf: input text is empty",
+		},
+		{
+			name:      "bad utf8",
+			input:     "\xf8\xa1\xa1\xa1\xa1",
+			chars:     "doesn't matter",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "NoneOf: input not valid utf-8",
+		},
+		{
+			name:      "match a",
+			input:     "abcdef",
+			chars:     "abc",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "NoneOf: found match (a) in input",
+		},
+		{
+			name:      "match b",
+			input:     "bacdef",
+			chars:     "abc",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "NoneOf: found match (b) in input",
+		},
+		{
+			name:      "match c",
+			input:     "cabdef",
+			chars:     "abc",
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "NoneOf: found match (c) in input",
+		},
+		{
+			name:      "no match",
+			input:     "abcdef",
+			chars:     "xyz",
+			value:     "a",
+			remainder: "bcdef",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "no match unicode",
+			input:     "語ç日ð本Ê語",
+			chars:     "ç日ð",
+			value:     "語",
+			remainder: "ç日ð本Ê語",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "no match unicode single",
+			input:     "本Ê語",
+			chars:     "Ê",
+			value:     "本",
+			remainder: "Ê語",
+			wantErr:   false,
+			err:       "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.NoneOf(tt.chars)(tt.input)
+
+			// Should only error if we wanted one
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			}
+
+			// If we did get an error, the message should match what we expect
+			if err != nil {
+				if msg := err.Error(); msg != tt.err {
+					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
+				}
+			}
+
+			// The value should be as expected
+			if value != tt.value {
+				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
+			}
+
+			// Likewise the remainder
+			if remainder != tt.remainder {
+				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
+			}
+		})
+	}
+}
+
 func TestMap(t *testing.T) {
 	type test[T1, T2 any] struct {
 		name      string               // Identifying test case name
@@ -1105,6 +1236,19 @@ func BenchmarkOneOf(b *testing.B) {
 	}
 }
 
+func BenchmarkNoneOf(b *testing.B) {
+	input := "abcdef"
+	chars := "xyz"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.NoneOf(chars)(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkMap(b *testing.B) {
 	input := "Hello, World!"
 
@@ -1217,6 +1361,23 @@ func ExampleOneOf() {
 	chars := "abc" // Match any of 'a', 'b', or 'c' from input
 
 	value, remainder, err := parser.OneOf(chars)(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value: %q\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value: "a"
+	// Remainder: "bcdefg"
+}
+
+func ExampleNoneOf() {
+	input := "abcdefg"
+
+	chars := "xyz" // Match anything other than 'x', 'y', or 'z' from input
+
+	value, remainder, err := parser.NoneOf(chars)(input)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}

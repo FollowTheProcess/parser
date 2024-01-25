@@ -239,6 +239,8 @@ func TakeUntil(predicate func(r rune) bool) Parser[string] {
 
 // OneOf returns a [Parser] that recognises one of the provided characters from the start of input.
 //
+// If you want to match anything other than the provided char set, use [NoneOf].
+//
 // If the input or chars is empty, an error will be returned.
 // Likewise if none of the chars was recognised.
 func OneOf(chars string) Parser[string] {
@@ -269,6 +271,47 @@ func OneOf(chars string) Parser[string] {
 		// any of our given chars
 		if !found {
 			return "", "", fmt.Errorf("OneOf: no requested char (%s) found in input", chars)
+		}
+
+		return input[:width], input[width:], nil
+	}
+}
+
+// NoneOf returns a [Parser] that recognises any char other than any of the provided characters
+// from the start of input.
+//
+// It can be considered as the opposite to [OneOf].
+//
+// If the input or chars is empty, an error will be returned.
+// Likewise if one of the chars was recognised.
+func NoneOf(chars string) Parser[string] {
+	return func(input string) (string, string, error) {
+		if input == "" {
+			return "", "", errors.New("NoneOf: input text is empty")
+		}
+
+		if chars == "" {
+			return "", "", errors.New("NoneOf: chars must not be empty")
+		}
+
+		r, width := utf8.DecodeRuneInString(input)
+		if r == utf8.RuneError {
+			return "", "", errors.New("NoneOf: input not valid utf-8")
+		}
+
+		found := false
+		for _, char := range chars {
+			if char == r {
+				// Found one that's not a match
+				found = true
+				break
+			}
+		}
+
+		// If we get here and found is true, the first char in the input matched one
+		// of the requested chars, which for NoneOf is bad
+		if found {
+			return "", "", fmt.Errorf("NoneOf: found match (%s) in input", string(r))
 		}
 
 		return input[:width], input[width:], nil
