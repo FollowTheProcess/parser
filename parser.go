@@ -237,6 +237,35 @@ func TakeUntil(predicate func(r rune) bool) Parser[string] {
 	}
 }
 
+// TakeTo returns a [Parser] that consumes characters until it first hits an exact string.
+//
+// If the input is empty or the exact string is not in the input, an error will be returned.
+//
+// The value will contain everything from the start of the input up to the first occurrence of
+// match, and the remainder will contain the match and everything thereafter.
+func TakeTo(match string) Parser[string] {
+	return func(input string) (string, string, error) {
+		if input == "" {
+			return "", "", errors.New("TakeTo: input text is empty")
+		}
+
+		if !utf8.ValidString(input) {
+			return "", "", errors.New("TakeTo: input not valid utf-8")
+		}
+
+		if match == "" {
+			return "", "", errors.New("TakeTo: match must not be empty")
+		}
+
+		start := strings.Index(input, match)
+		if start == -1 {
+			return "", "", fmt.Errorf("TakeTo: match (%s) not in input", match)
+		}
+
+		return input[:start], input[start:], nil
+	}
+}
+
 // OneOf returns a [Parser] that recognises one of the provided characters from the start of input.
 //
 // If you want to match anything other than the provided char set, use [NoneOf].
@@ -322,7 +351,7 @@ func NoneOf(chars string) Parser[string] {
 // passed in set of chars.
 //
 // If the input or chars is empty, an error will be returned.
-// Likewise if none of the chars is present.
+// Likewise if none of the chars are present.
 func AnyOf(chars string) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
@@ -345,7 +374,7 @@ func AnyOf(chars string) Parser[string] {
 			}
 		}
 
-		// If we've broken the loop but end is still 0, there was no matches
+		// If we've broken the loop but end is still 0, there were no matches
 		// in the entire input
 		if end == 0 {
 			return "", "", fmt.Errorf("AnyOf: no match for any char in (%s) found in input", chars)
