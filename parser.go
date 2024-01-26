@@ -350,8 +350,13 @@ func NoneOf(chars string) Parser[string] {
 // AnyOf returns a [Parser] that continues taking characters so long as they are contained in the
 // passed in set of chars.
 //
+// Parsing stops at the first occurrence of a character not contained in the argument and the
+// offending character is not included in the parsed value, but will be in the remainder.
+//
+// AnyOf is the opposite to [NotAnyOf].
+//
 // If the input or chars is empty, an error will be returned.
-// Likewise if none of the chars are present.
+// Likewise if none of the chars are present at the start of the input.
 func AnyOf(chars string) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
@@ -378,6 +383,48 @@ func AnyOf(chars string) Parser[string] {
 		// in the entire input
 		if end == 0 {
 			return "", "", fmt.Errorf("AnyOf: no match for any char in (%s) found in input", chars)
+		}
+
+		return input[:end], input[end:], nil
+	}
+}
+
+// NotAnyOf returns a [Parser] that continues taking characters so long as they are not contained
+// in the passed in set of chars.
+//
+// Parsing stops at the first occurrence of a character contained in the argument and the
+// offending character is not included in the parsed value, but will be in the remainder.
+//
+// NotAnyOf is the opposite of [AnyOf].
+//
+// If the input or chars is empty, an error will be returned.
+// Likewise if any of the chars are present at the start of the input.
+func NotAnyOf(chars string) Parser[string] {
+	return func(input string) (string, string, error) {
+		if input == "" {
+			return "", "", errors.New("NotAnyOf: input text is empty")
+		}
+
+		if chars == "" {
+			return "", "", errors.New("NotAnyOf: chars must not be empty")
+		}
+
+		if !utf8.ValidString(input) {
+			return "", "", errors.New("NotAnyOf: input not valid utf-8")
+		}
+
+		end := 0 // The end of the matching sequence
+		for pos, char := range input {
+			if strings.ContainsRune(chars, char) {
+				end = pos
+				break
+			}
+		}
+
+		// If we've broken the loop but end is still 0, there were no matches
+		// in the entire input
+		if end == 0 {
+			return "", "", fmt.Errorf("NotAnyOf: match found for char in (%s)", chars)
 		}
 
 		return input[:end], input[end:], nil
