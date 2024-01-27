@@ -640,6 +640,138 @@ func TestTakeWhile(t *testing.T) {
 	}
 }
 
+func TestTakeWhileBetween(t *testing.T) {
+	tests := []struct {
+		predicate func(r rune) bool // The predicate function that determines whether the parser should continue taking characters
+		name      string            // Identifying test case name
+		input     string            // Entire input to be parsed
+		value     string            // The parsed value
+		remainder string            // The remaining unparsed input
+		err       string            // The expected error message (if there is one)
+		wantErr   bool              // Whether it should have returned an error
+		lower     int               // The lower limit
+		upper     int               // The upper limit
+	}{
+		{
+			name:      "empty input",
+			input:     "",
+			lower:     0,   // Doesn't matter
+			upper:     0,   // Also doesn't matter
+			predicate: nil, // Same
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: input text is empty",
+		},
+		{
+			name:      "invalid utf-8",
+			input:     "\xf8\xa1\xa1\xa1\xa1",
+			lower:     0,   // Doesn't matter
+			upper:     0,   // Also doesn't matter
+			predicate: nil, // Same
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: input not valid utf-8",
+		},
+		{
+			name:      "nil predicate",
+			input:     "some valid input",
+			lower:     0, // Doesn't matter
+			upper:     0, // Also doesn't matter
+			predicate: nil,
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: predicate must be a non-nil function",
+		},
+		{
+			name:      "lower negative",
+			input:     "some valid input",
+			lower:     -1, // Not valid
+			upper:     4,
+			predicate: func(r rune) bool { return true }, // Doesn't matter, but can't be nil
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: lower limit (-1) not allowed, must be positive integer",
+		},
+		{
+			name:      "upper less than lower",
+			input:     "some valid input",
+			lower:     4,
+			upper:     2,
+			predicate: func(r rune) bool { return true }, // Doesn't matter, but can't be nil
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: invalid range, lower (4) must be < upper (2)",
+		},
+		{
+			name:      "nom example 1", // https://docs.rs/nom/latest/nom/bytes/complete/fn.take_while_m_n.html
+			input:     "latin123",
+			lower:     3,
+			upper:     6,
+			predicate: unicode.IsLetter,
+			value:     "latin",
+			remainder: "123",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "nom example 2", // https://docs.rs/nom/latest/nom/bytes/complete/fn.take_while_m_n.html
+			input:     "lengthy",
+			lower:     3,
+			upper:     6,
+			predicate: unicode.IsLetter,
+			value:     "length",
+			remainder: "y",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "nom example 3", // https://docs.rs/nom/latest/nom/bytes/complete/fn.take_while_m_n.html
+			input:     "latin",
+			lower:     3,
+			upper:     6,
+			predicate: unicode.IsLetter,
+			value:     "latin",
+			remainder: "",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "nom example 4", // https://docs.rs/nom/latest/nom/bytes/complete/fn.take_while_m_n.html
+			input:     "ed",            // Not long enough
+			lower:     3,
+			upper:     6,
+			predicate: unicode.IsLetter,
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: predicate matched only 2 chars (ed), below lower limit (3)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.TakeWhileBetween(tt.lower, tt.upper, tt.predicate)(tt.input)
+
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
+			}
+
+			testParser(t, result)
+		})
+	}
+}
+
 func TestTakeUntil(t *testing.T) {
 	tests := []struct {
 		predicate func(r rune) bool // The predicate function that determines whether the parser should stop taking characters

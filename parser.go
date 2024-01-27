@@ -237,6 +237,88 @@ func TakeUntil(predicate func(r rune) bool) Parser[string] {
 	}
 }
 
+// TakeWhileBetween returns a [Parser] that recognises the longest (lower <= len <= upper) sequence
+// of utf-8 characters for which the predicate returns true.
+//
+// If the input is empty or invalid utf-8, an error is returned. Likewise if the predicate is nil.
+func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[string] {
+	return func(input string) (string, string, error) {
+		if input == "" {
+			return "", "", errors.New("TakeWhileBetween: input text is empty")
+		}
+
+		if !utf8.ValidString(input) {
+			return "", "", errors.New("TakeWhileBetween: input not valid utf-8")
+		}
+
+		if predicate == nil {
+			return "", "", errors.New("TakeWhileBetween: predicate must be a non-nil function")
+		}
+
+		if lower < 0 {
+			return "", "", fmt.Errorf("TakeWhileBetween: lower limit (%d) not allowed, must be positive integer", lower)
+		}
+
+		if lower > upper {
+			return "", "", fmt.Errorf("TakeWhileBetween: invalid range, lower (%d) must be < upper (%d)", lower, upper)
+		}
+
+		index := -1 // Index of last char for which predicate returns true, -1 if predicate never returns false
+		for pos, char := range input {
+			if !predicate(char) {
+				break
+			}
+			// Add the byte width of the char in question because the next char is the
+			// first one where predicate(char) == false, that's where we want to cut
+			// the string
+			index = pos + utf8.RuneLen(char)
+		}
+
+		// TODO: Handle the case where the predicate never returns true
+
+		// If index is still -1, the predicate returned true for every char in the input
+		// which means we're limited purely by the upper limit
+		if index == -1 {
+			return input[:upper], input[upper:], nil
+		}
+
+		// If we have an index, our job now is to return whichever is longest out of
+		// the sequence for which the predicate returned true, or the entire input
+		// up to the upper limit of chars
+
+		startToIndex := input[:index]
+		n := utf8.RuneCountInString(startToIndex)
+
+		if n < lower {
+			// The number of chars for which the predicate returned true is less
+			// than our lower limit, which is an error
+			return "", "", fmt.Errorf("TakeWhileBetween: predicate matched only %d chars (%s), below lower limit (%d)", n, startToIndex, lower)
+		}
+
+		if n > upper {
+			// The sequence of chars for which the predicate returned true is
+			// longer than our upper limit, so cut if off at upper utf-8 chars
+			runes := 0  // How many runes we've scanned through
+			cutOff := 0 // Index of where to cut the string off
+			for pos, char := range startToIndex {
+				runes++
+				if runes == upper {
+					// Add the byte width of the char in question because we want to
+					// include it in the slice and pos is just the starting byte position
+					cutOff = pos + utf8.RuneLen(char)
+				}
+			}
+
+			return input[:cutOff], input[cutOff:], nil
+		}
+
+		// If we get here, we know that the number of utf-8 chars for which the predicate
+		// returned true is already less than our upper limit, so we can just use the
+		// index from earlier
+		return input[:index], input[index:], nil
+	}
+}
+
 // TakeTo returns a [Parser] that consumes characters until it first hits an exact string.
 //
 // If the input is empty or the exact string is not in the input, an error will be returned.
