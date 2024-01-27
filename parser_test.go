@@ -762,6 +762,24 @@ func TestTakeWhileBetween(t *testing.T) {
 			wantErr:   true,
 			err:       "TakeWhileBetween: predicate matched no chars in input",
 		},
+		{
+			name:  "unicode",
+			input: "語ç日ð本Ê語",
+			lower: 2,
+			upper: 4,
+			predicate: func(r rune) bool {
+				switch r {
+				case '語', 'ç', '日':
+					return true
+				default:
+					return false
+				}
+			},
+			value:     "語ç日",
+			remainder: "ð本Ê語",
+			wantErr:   false,
+			err:       "",
+		},
 	}
 
 	for _, tt := range tests {
