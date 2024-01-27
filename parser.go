@@ -268,7 +268,7 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 			return "", "", errors.New("TakeWhileBetween: predicate matched no chars in input")
 		}
 
-		index := -1 // Index of last char for which predicate returns true, -1 if predicate never returns false
+		index := -1 // Index of last char for which predicate returns true
 		for pos, char := range input {
 			if !predicate(char) {
 				break
