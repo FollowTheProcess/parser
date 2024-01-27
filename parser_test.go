@@ -172,27 +172,17 @@ func TestTake(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.Take(tt.n)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -315,27 +305,17 @@ func TestExact(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.Exact(tt.match)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -466,27 +446,17 @@ func TestExactCaseInsensitive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.ExactCaseInsensitive(tt.match)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -561,27 +531,17 @@ func TestChar(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.Char(tt.char)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -665,27 +625,17 @@ func TestTakeWhile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.TakeWhile(tt.predicate)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -769,27 +719,17 @@ func TestTakeUntil(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.TakeUntil(tt.predicate)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -900,27 +840,17 @@ func TestTakeTo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.TakeTo(tt.match)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -1040,27 +970,17 @@ func TestOneOf(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.OneOf(tt.chars)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -1171,27 +1091,17 @@ func TestNoneOf(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.NoneOf(tt.chars)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -1293,27 +1203,17 @@ func TestAnyOf(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.AnyOf(tt.chars)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -1415,27 +1315,17 @@ func TestNotAny(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.NotAnyOf(tt.chars)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -1500,27 +1390,17 @@ func TestMap(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, remainder, err := parser.Map(tt.p, tt.fn)(tt.input)
 
-			// Should only error if we wanted one
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			result := parserTest[int]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
 			}
 
-			// If we did get an error, the message should match what we expect
-			if err != nil {
-				if msg := err.Error(); msg != tt.err {
-					t.Fatalf("\nGot:\t%q\nWanted:\t%q\n", msg, tt.err)
-				}
-			}
-
-			// The value should be as expected
-			if value != tt.value {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", value, tt.value)
-			}
-
-			// Likewise the remainder
-			if remainder != tt.remainder {
-				t.Errorf("\nGot:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
-			}
+			testParser(t, result)
 		})
 	}
 }
@@ -1864,4 +1744,44 @@ func ExampleMap() {
 
 	// Output: Value 27 is type int
 	// Remainder: " <- this is a number"
+}
+
+// parserTest is a simple structure to encapsulate everything we need to test about
+// the result of applying a parser to some input.
+type parserTest[T comparable] struct {
+	gotErr        error  // The error the parser returned
+	gotValue      T      // The value the parser actually returned
+	wantValue     T      // The expected value
+	gotRemainder  string // The remainder the parser actually returned
+	wantRemainder string // The expected remainder
+	wantErrMsg    string // The expected error message, if any
+	wantErr       bool   // Whether we wanted an error or not
+}
+
+// testParser is a test helper that takes in the results of applying a parser and performs
+// all the testing for us so that this code exists in one place, rather than in every test.
+func testParser[T comparable](t *testing.T, p parserTest[T]) {
+	t.Helper()
+
+	// Should only error if we wanted one
+	if (p.gotErr != nil) != p.wantErr {
+		t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", p.gotErr, p.wantErr)
+	}
+
+	// If we did get an error, the message should match what we expect
+	if p.gotErr != nil {
+		if msg := p.gotErr.Error(); msg != p.wantErrMsg {
+			t.Fatalf("\nError message:\t%q\nWanted:\t%q\n", msg, p.wantErrMsg)
+		}
+	}
+
+	// The value should be as expected
+	if p.gotValue != p.wantValue {
+		t.Errorf("\nValue:\t%#v\nWanted:\t%#v\n", p.gotValue, p.wantValue)
+	}
+
+	// Likewise the remainder
+	if p.gotRemainder != p.wantRemainder {
+		t.Errorf("\nRemainder:\t%q\nWanted:\t%q\n", p.gotRemainder, p.wantRemainder)
+	}
 }
