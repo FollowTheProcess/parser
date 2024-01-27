@@ -751,6 +751,17 @@ func TestTakeWhileBetween(t *testing.T) {
 			wantErr:   true,
 			err:       "TakeWhileBetween: predicate matched only 2 chars (ed), below lower limit (3)",
 		},
+		{
+			name:      "nom example 5", // https://docs.rs/nom/latest/nom/bytes/complete/fn.take_while_m_n.html
+			input:     "12345",         // Predicate never returns true
+			lower:     3,
+			upper:     6,
+			predicate: unicode.IsLetter,
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: predicate matched no chars in input",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1597,6 +1608,18 @@ func BenchmarkTakeWhile(b *testing.B) {
 	}
 }
 
+func BenchmarkTakeWhileBetween(b *testing.B) {
+	input := "latin123"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.TakeWhileBetween(3, 6, unicode.IsLetter)(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkTakeUntil(b *testing.B) {
 	input := "  \t\t\n\n end of whitespace"
 	predicate := func(r rune) bool { return !unicode.IsSpace(r) }
@@ -1763,6 +1786,26 @@ func ExampleTakeWhile() {
 
 	// Output: Value: "本本本"
 	// Remainder: "b語ç日ð本Ê語"
+}
+
+func ExampleTakeWhileBetween() {
+	input := "2F14DF" // A hex colour (minus the #)
+
+	isHexDigit := func(r rune) bool {
+		_, err := strconv.ParseUint(string(r), 16, 64)
+		return err == nil
+	}
+
+	value, remainder, err := parser.TakeWhileBetween(2, 2, isHexDigit)(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value: %q\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value: "2F"
+	// Remainder: "14DF"
 }
 
 func ExampleTakeUntil() {

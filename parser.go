@@ -263,6 +263,11 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 			return "", "", fmt.Errorf("TakeWhileBetween: invalid range, lower (%d) must be < upper (%d)", lower, upper)
 		}
 
+		// Does the predicate ever return true? Quick failure case
+		if i := strings.IndexFunc(input, predicate); i == -1 {
+			return "", "", errors.New("TakeWhileBetween: predicate matched no chars in input")
+		}
+
 		index := -1 // Index of last char for which predicate returns true, -1 if predicate never returns false
 		for pos, char := range input {
 			if !predicate(char) {
@@ -273,8 +278,6 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 			// the string
 			index = pos + utf8.RuneLen(char)
 		}
-
-		// TODO: Handle the case where the predicate never returns true
 
 		// If index is still -1, the predicate returned true for every char in the input
 		// which means we're limited purely by the upper limit
