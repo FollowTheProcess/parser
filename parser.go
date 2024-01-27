@@ -279,12 +279,6 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 			index = pos + utf8.RuneLen(char)
 		}
 
-		// If index is still -1, the predicate returned true for every char in the input
-		// which means we're limited purely by the upper limit
-		if index == -1 {
-			return input[:upper], input[upper:], nil
-		}
-
 		// If we have an index, our job now is to return whichever is longest out of
 		// the sequence for which the predicate returned true, or the entire input
 		// up to the upper limit of chars
