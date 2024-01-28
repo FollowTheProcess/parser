@@ -7,7 +7,7 @@
 [![CI](https://github.com/FollowTheProcess/parser/workflows/CI/badge.svg)](https://github.com/FollowTheProcess/parser/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/FollowTheProcess/parser/branch/main/graph/badge.svg)](https://codecov.io/gh/FollowTheProcess/parser)
 
-Simple, [combinatorial parsing] with Go
+Simple, fast, zero-allocation [combinatorial parsing] with Go
 
 > [!WARNING]
 > **Parser is in early development and is not yet ready for use**
@@ -16,9 +16,8 @@ Simple, [combinatorial parsing] with Go
 
 `parser` is intended to be a simple, expressive and easy to use API for all your text parsing needs. It aims to be:
 
-- **Fast:** Performant text parsing can be tricky, `parser` aims to be as fast as possible without compromising safety or error handling. Every parser function has a benchmark
+- **Fast:** Performant text parsing can be tricky, `parser` aims to be as fast as possible without compromising safety or error handling. Every parser function has a benchmark and has been written with performance in mind, none of them allocate on the heap ⚡️
 - **Correct:** You get the correct behaviour at all times, on any valid UTF-8 text. Errors are well handled and reported for easy debugging. 100% test coverage.
-- **Memory Efficient:** Text parsing can result in lots of memory pressure, the combinators in `parser` do not allocate on the heap. In general memory and CPU performance is paramount, so long as the other goals are not compromised
 - **Intuitive:** Some parser combinator libraries are tricky to wrap your head around, I want `parser` to be super simple to use so that anyone can pick it up and be productive quickly
 - **Well Documented:** Every combinator in `parser` has a comprehensive doc comment describing it's entire behaviour, as well as an executable example of its use
 
