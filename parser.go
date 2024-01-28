@@ -240,7 +240,14 @@ func TakeUntil(predicate func(r rune) bool) Parser[string] {
 // TakeWhileBetween returns a [Parser] that recognises the longest (lower <= len <= upper) sequence
 // of utf-8 characters for which the predicate returns true.
 //
-// If the input is empty or invalid utf-8, an error is returned. Likewise if the predicate is nil.
+// Any of the following conditions will return an error:
+//   - input is empty
+//   - input is not valid utf-8
+//   - predicate is nil
+//   - lower < 0
+//   - lower > upper
+//   - predicate never returns true
+//   - predicate matched some chars but less than lower limit
 func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
