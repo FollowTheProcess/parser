@@ -33,6 +33,10 @@ go get github.com/FollowTheProcess/parser@latest
 
 This package was created with [copier] and the [FollowTheProcess/go_copier] project template.
 
+It is also heavily inspired by [nom], an excellent combinatorial parsing library written in [Rust].
+
 [copier]: https://copier.readthedocs.io/en/stable/
 [FollowTheProcess/go_copier]: https://github.com/FollowTheProcess/go_copier
 [combinatorial parsing]: https://en.wikipedia.org/wiki/Parser_combinator
+[nom]: https://github.com/rust-bakery/nom
+[Rust]: https://www.rust-lang.org
