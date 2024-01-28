@@ -584,7 +584,7 @@ func TestTakeWhile(t *testing.T) {
 			err:       "TakeWhile: predicate must be a non-nil function",
 		},
 		{
-			name:      "predicate never returns false", // Good libraries don't allow infinite loops
+			name:      "predicate never returns false",
 			input:     "fixed length input",
 			value:     "",
 			remainder: "",
@@ -596,10 +596,10 @@ func TestTakeWhile(t *testing.T) {
 			name:      "predicate never returns true",
 			input:     "fixed length input",
 			value:     "",
-			remainder: "fixed length input",
+			remainder: "",
 			predicate: func(r rune) bool { return false },
-			wantErr:   false,
-			err:       "",
+			wantErr:   true,
+			err:       "TakeWhile: predicate never returned true",
 		},
 		{
 			name:      "consume whitespace",
@@ -839,7 +839,7 @@ func TestTakeUntil(t *testing.T) {
 			err:       "TakeUntil: predicate must be a non-nil function",
 		},
 		{
-			name:      "predicate never returns true", // Good libraries don't allow infinite loops
+			name:      "predicate never returns true",
 			input:     "fixed length input",
 			value:     "",
 			remainder: "",
@@ -851,10 +851,10 @@ func TestTakeUntil(t *testing.T) {
 			name:      "predicate never returns false",
 			input:     "fixed length input",
 			value:     "",
-			remainder: "fixed length input",
+			remainder: "",
 			predicate: func(r rune) bool { return true },
-			wantErr:   false,
-			err:       "",
+			wantErr:   true,
+			err:       "TakeUntil: predicate never returned false",
 		},
 		{
 			name:      "consume until whitespace",

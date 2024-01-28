@@ -158,8 +158,7 @@ func Char(char rune) Parser[string] {
 //
 // If the predicate doesn't return false before the entire input is consumed, an error will be returned.
 //
-// A predicate that never returns true will leave the entire input unparsed and return a
-// value that is an empty string, and a remainder that is the entire input.
+// A predicate that never returns true will also return an error.
 func TakeWhile(predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
@@ -172,6 +171,10 @@ func TakeWhile(predicate func(r rune) bool) Parser[string] {
 
 		if predicate == nil {
 			return "", "", errors.New("TakeWhile: predicate must be a non-nil function")
+		}
+
+		if strings.IndexFunc(input, predicate) == -1 {
+			return "", "", errors.New("TakeWhile: predicate never returned true")
 		}
 
 		end := 0        // Byte position of last rune that the predicate returns true for
@@ -200,11 +203,9 @@ func TakeWhile(predicate func(r rune) bool) Parser[string] {
 //
 // If the input is empty or predicate == nil, an error will be returned.
 //
-// If the predicate doesn't return true before the entire input is consumed, an error will be returned
-// .
+// If the predicate doesn't return true before the entire input is consumed, an error will be returned.
 //
-// A predicate that never returns false will leave the entire input unparsed and return a
-// value that is an empty string, and a remainder that is the entire input.
+// A predicate that never returns false will also return an error.
 func TakeUntil(predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
@@ -217,6 +218,14 @@ func TakeUntil(predicate func(r rune) bool) Parser[string] {
 
 		if predicate == nil {
 			return "", "", errors.New("TakeUntil: predicate must be a non-nil function")
+		}
+
+		// strings.IndexFunc returns the index of the first char for which the predicate
+		// returns true, we want the opposite to test if it ever returns false
+		notPred := func(r rune) bool { return !predicate(r) }
+
+		if strings.IndexFunc(input, notPred) == -1 {
+			return "", "", errors.New("TakeUntil: predicate never returned false")
 		}
 
 		end := 0        // Byte position of last rune that the predicate returns false for
