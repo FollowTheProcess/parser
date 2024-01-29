@@ -29,6 +29,71 @@ go get github.com/FollowTheProcess/parser@latest
 
 ## Quickstart
 
+Let's borrow the [nom] example and parse a hex colour!
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"strconv"
+
+	"github.com/FollowTheProcess/parser"
+)
+
+// RGB represents a colour.
+type RGB struct {
+	Red   int
+	Green int
+	Blue  int
+}
+
+// fromHex parses a string into a hex digit.
+func fromHex(s string) (int, error) {
+	hx, err := strconv.ParseUint(s, 16, 64)
+	return int(hx), err
+}
+
+// hexPair is a parser that converts a hex string into it's integer value.
+func hexPair(colour string) (int, string, error) {
+	return parser.Map(
+		parser.Take(2),
+		fromHex,
+	)(colour)
+}
+
+func main() {
+	// Let's parse this into an RGB
+	colour := "#2F14DF"
+
+	// We don't actually care about the #
+	_, colour, err := parser.Char('#')(colour)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// We want 3 hex pairs
+	pairs, _, err := parser.Many(hexPair, hexPair, hexPair)(colour)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if len(pairs) != 3 {
+		log.Fatalln("Not enough pairs")
+	}
+
+	rgb := RGB{
+		Red:   pairs[0],
+		Green: pairs[1],
+		Blue:  pairs[2],
+	}
+
+	fmt.Printf("%#v\n", rgb) // main.RGB{Red:47, Green:20, Blue:223}
+}
+
+```
+
 ### Credits
 
 This package was created with [copier] and the [FollowTheProcess/go_copier] project template.
