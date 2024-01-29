@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"testing"
 	"unicode"
@@ -1590,7 +1591,7 @@ func TestTry(t *testing.T) {
 			value:     "",
 			remainder: "",
 			wantErr:   true,
-			err:       "Try: all parsers failed:\nTake: cannot take from empty input\nChar: input text is empty\nTakeWhile: input text is empty",
+			err:       "Try: all parsers failed",
 		},
 		{
 			name:  "digits then symbols",
@@ -1646,6 +1647,126 @@ func TestTry(t *testing.T) {
 			}
 
 			testParser(t, result)
+		})
+	}
+}
+
+func TestMany(t *testing.T) {
+	type test[T any] struct {
+		value     []T
+		name      string
+		input     string
+		remainder string
+		err       string
+		parsers   []parser.Parser[T]
+		wantErr   bool
+	}
+
+	tests := []test[string]{
+		{
+			name:  "empty input",
+			input: "",
+			parsers: []parser.Parser[string]{
+				// Some random parsers
+				parser.Take(3),
+				parser.Char('X'),
+				parser.TakeWhile(unicode.IsLetter),
+			},
+			value:     nil,
+			remainder: "",
+			wantErr:   true,
+			err:       "Many: sub parser failed: Take: cannot take from empty input",
+		},
+		{
+			name:  "pairs of chars",
+			input: "abcd1234",
+			parsers: []parser.Parser[string]{
+				// Chain pairs
+				parser.Take(2),
+				parser.Take(2),
+				parser.Take(2),
+				parser.Take(2),
+			},
+			value:     []string{"ab", "cd", "12", "34"},
+			remainder: "",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:  "too many pairs of chars",
+			input: "abcd1234",
+			parsers: []parser.Parser[string]{
+				// Chain pairs
+				parser.Take(2),
+				parser.Take(2),
+				parser.Take(2),
+				parser.Take(2),
+				parser.Take(2), // One more than there is in the input
+			},
+			value:     nil,
+			remainder: "",
+			wantErr:   true,
+			err:       "Many: sub parser failed: Take: cannot take from empty input",
+		},
+		{
+			name:  "combo",
+			input: "abcd1234exact \t\n 日ð本Ê語 eof",
+			parsers: []parser.Parser[string]{
+				parser.TakeWhile(unicode.IsLetter), // Get abcd
+				parser.TakeWhile(unicode.IsDigit),  // 1234
+				parser.Exact("exact"),              // exact
+				parser.TakeWhile(unicode.IsSpace),  // Consume all whitespace
+				parser.TakeTo("語"),                 // Take up to this char
+				parser.Char('語'),                   // Take that char
+				parser.TakeWhile(unicode.IsSpace),  // More space
+				parser.Exact("eof"),                // Boom
+			},
+			value:     []string{"abcd", "1234", "exact", " \t\n ", "日ð本Ê", "語", " ", "eof"},
+			remainder: "",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:  "remainder left",
+			input: "abcd1234",
+			parsers: []parser.Parser[string]{
+				parser.TakeWhile(unicode.IsLetter), // Get abcd
+				parser.Take(2),                     // 12
+			},
+			value:     []string{"abcd", "12"},
+			remainder: "34",
+			wantErr:   false,
+			err:       "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.Many(tt.parsers...)(tt.input)
+
+			// Can't use the helper as []string is not comparable
+
+			// Should only error if we wanted one
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			}
+
+			// If we did get an error, the message should match what we expect
+			if err != nil {
+				if msg := err.Error(); msg != tt.err {
+					t.Fatalf("\nError message:\t%q\nWanted:\t%q\n", msg, tt.err)
+				}
+			}
+
+			// The value should be as expected
+			if !reflect.DeepEqual(value, tt.value) {
+				t.Errorf("\nValue:\t%#v\nWanted:\t%#v\n", value, tt.value)
+			}
+
+			// Likewise the remainder
+			if remainder != tt.remainder {
+				t.Errorf("\nRemainder:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
+			}
 		})
 	}
 }
@@ -1820,6 +1941,21 @@ func BenchmarkTry(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _, err := parser.Try(
 			parser.TakeWhile(unicode.IsLetter),
+			parser.TakeWhile(unicode.IsDigit),
+		)(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMany(b *testing.B) {
+	input := "abcd1234eof"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.Many(
+			parser.Take(4),
 			parser.TakeWhile(unicode.IsDigit),
 		)(input)
 		if err != nil {
@@ -2055,6 +2191,29 @@ func ExampleTry() {
 
 	// Output: Value: "xyz"
 	// Remainder: "abc日ð本Ê語"
+}
+
+func ExampleMany() {
+	input := "1234abcd\t\n日ð本rest..."
+
+	value, remainder, err := parser.Many(
+		// Can do this is a number of ways, but here's one!
+		parser.TakeWhile(unicode.IsDigit),
+		parser.Exact("abcd"),
+		parser.TakeWhile(unicode.IsSpace),
+		parser.Char('日'),
+		parser.Char('ð'),
+		parser.Char('本'),
+	)(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value: %#v\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value: []string{"1234", "abcd", "\t\n", "日", "ð", "本"}
+	// Remainder: "rest..."
 }
 
 // parserTest is a simple structure to encapsulate everything we need to test about

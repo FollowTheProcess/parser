@@ -564,20 +564,19 @@ func Map[T1, T2 any](parser Parser[T1], fn func(T1) (T2, error)) Parser[T2] {
 // Try returns a [Parser] that attempts a series of sub-parsers, returning the output from the
 // first successful one.
 //
-// If all parsers fail, an error will be returned with the combined error messages of each parser
-// that was attempted.
+// If all parsers fail, an error will be returned.
+//
+// Note: Because Try takes a variadic argument, it is one of the only parser functions
+// to allocate on the heap.
 func Try[T any](parsers ...Parser[T]) Parser[T] {
 	return func(input string) (T, string, error) {
 		var zero T
-
-		var parserError error
 
 		for _, parser := range parsers {
 			// Try the parser
 			value, remainder, err := parser(input)
 			if err != nil {
-				// Join up the error to help debugging and try the next parser
-				parserError = errors.Join(parserError, err)
+				// Try the next parser
 				continue
 			}
 
@@ -586,6 +585,35 @@ func Try[T any](parsers ...Parser[T]) Parser[T] {
 		}
 
 		// None of the parsers were successful
-		return zero, "", fmt.Errorf("Try: all parsers failed:\n%w", parserError)
+		return zero, "", errors.New("Try: all parsers failed")
+	}
+}
+
+// Many returns a [Parser] that chains a series of sub-parsers, passing the remainder from one
+// as input to the next and returning a slice of values; one from each parser, and any remaining input
+// after applying all the parsers.
+//
+// If any of the parsers fail, an error will be returned.
+//
+// Note: Because Many takes a variadic argument and returns a slice, it is one of the only parser functions
+// to allocate on the heap.
+func Many[T any](parsers ...Parser[T]) Parser[[]T] {
+	return func(input string) ([]T, string, error) {
+		values := make([]T, 0, len(parsers))
+
+		nextInput := input        // The input to the next parser in the loop, starts as our overall input
+		var finalRemainder string // The final remainder to eventually return, updated with each parser
+
+		for _, parser := range parsers {
+			value, remainder, err := parser(nextInput)
+			if err != nil {
+				return nil, "", fmt.Errorf("Many: sub parser failed: %w", err)
+			}
+			values = append(values, value)
+			nextInput = remainder
+			finalRemainder = remainder
+		}
+
+		return values, finalRemainder, nil
 	}
 }
