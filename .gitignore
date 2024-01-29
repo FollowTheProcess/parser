@@ -15,6 +15,9 @@
 # Test binary, built with `go test -c`
 *.test
 
+# Taskfile
+.task
+
 # Comparative benchmarks
 before.txt
 after.txt
