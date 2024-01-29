@@ -585,19 +585,19 @@ func TestTakeWhile(t *testing.T) {
 		},
 		{
 			name:      "predicate never returns false",
-			input:     "fixed length input",
+			input:     "123456", // All digits
 			value:     "",
 			remainder: "",
-			predicate: func(r rune) bool { return true },
+			predicate: unicode.IsDigit, // True for every char in input
 			wantErr:   true,
 			err:       "TakeWhile: predicate never returned false",
 		},
 		{
 			name:      "predicate never returns true",
-			input:     "fixed length input",
+			input:     "abcdef", // All letters
 			value:     "",
 			remainder: "",
-			predicate: func(r rune) bool { return false },
+			predicate: unicode.IsDigit, // False for every char in input
 			wantErr:   true,
 			err:       "TakeWhile: predicate never returned true",
 		},
@@ -1566,6 +1566,90 @@ func TestMap(t *testing.T) {
 	}
 }
 
+func TestTry(t *testing.T) {
+	type test[T any] struct {
+		value     T
+		name      string
+		input     string
+		remainder string
+		err       string
+		parsers   []parser.Parser[T]
+		wantErr   bool
+	}
+
+	tests := []test[string]{
+		{
+			name:  "empty input",
+			input: "",
+			parsers: []parser.Parser[string]{
+				// Some random parsers
+				parser.Take(3),
+				parser.Char('X'),
+				parser.TakeWhile(unicode.IsLetter),
+			},
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "Try: all parsers failed:\nTake: cannot take from empty input\nChar: input text is empty\nTakeWhile: input text is empty",
+		},
+		{
+			name:  "digits then symbols",
+			input: "123456*&^$£@",
+			parsers: []parser.Parser[string]{
+				parser.TakeWhile(unicode.IsLetter), // Will fail
+				parser.TakeWhile(unicode.IsDigit),  // Should return the output from this one
+			},
+			value:     "123456",
+			remainder: "*&^$£@",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:  "digits then symbols",
+			input: "xyzabc日ð本Ê語",
+			parsers: []parser.Parser[string]{
+				parser.OneOf("abc"),                // Will fail
+				parser.Char('本'),                   // Same
+				parser.ExactCaseInsensitive("XyZ"), // Should succeed
+			},
+			value:     "xyz",
+			remainder: "abc日ð本Ê語",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:  "first is successful",
+			input: "hello there",
+			parsers: []parser.Parser[string]{
+				parser.Take(2),        // Will succeed and return
+				parser.Exact("hello"), // Should never get invoked
+			},
+			value:     "he",
+			remainder: "llo there",
+			wantErr:   false,
+			err:       "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.Try(tt.parsers...)(tt.input)
+
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
+			}
+
+			testParser(t, result)
+		})
+	}
+}
+
 func BenchmarkTake(b *testing.B) {
 	input := "Please take some chars from me"
 
@@ -1723,6 +1807,21 @@ func BenchmarkMap(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, _, err := parser.Map(parser.Take(5), mapper)(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkTry(b *testing.B) {
+	input := "123456)(*&^%"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.Try(
+			parser.TakeWhile(unicode.IsLetter),
+			parser.TakeWhile(unicode.IsDigit),
+		)(input)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -1937,6 +2036,25 @@ func ExampleMap() {
 
 	// Output: Value 27 is type int
 	// Remainder: " <- this is a number"
+}
+
+func ExampleTry() {
+	input := "xyzabc日ð本Ê語"
+
+	value, remainder, err := parser.Try(
+		parser.OneOf("abc"),                // Will fail
+		parser.Char('本'),                   // Same
+		parser.ExactCaseInsensitive("XyZ"), // Should succeed, this is the output we'll get
+	)(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value: %q\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value: "xyz"
+	// Remainder: "abc日ð本Ê語"
 }
 
 // parserTest is a simple structure to encapsulate everything we need to test about
