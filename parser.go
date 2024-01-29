@@ -560,3 +560,32 @@ func Map[T1, T2 any](parser Parser[T1], fn func(T1) (T2, error)) Parser[T2] {
 		return newValue, remainder, nil
 	}
 }
+
+// Try returns a [Parser] that attempts a series of sub-parsers, returning the output from the
+// first successful one.
+//
+// If all parsers fail, an error will be returned with the combined error messages of each parser
+// that was attempted.
+func Try[T any](parsers ...Parser[T]) Parser[T] {
+	return func(input string) (T, string, error) {
+		var zero T
+
+		var parserError error
+
+		for _, parser := range parsers {
+			// Try the parser
+			value, remainder, err := parser(input)
+			if err != nil {
+				// Join up the error to help debugging and try the next parser
+				parserError = errors.Join(parserError, err)
+				continue
+			}
+
+			// We have a successful parser
+			return value, remainder, nil
+		}
+
+		// None of the parsers were successful
+		return zero, "", fmt.Errorf("Try: all parsers failed:\n%w", parserError)
+	}
+}
