@@ -156,9 +156,10 @@ func Char(char rune) Parser[string] {
 //
 // If the input is empty or predicate == nil, an error will be returned.
 //
-// If the predicate doesn't return false before the entire input is consumed, an error will be returned.
+// If the predicate doesn't return false for any char in the input, the entire input is returned as the value
+// with no remainder.
 //
-// A predicate that never returns true will also return an error.
+// A predicate that never returns true will return an error.
 func TakeWhile(predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
@@ -188,7 +189,9 @@ func TakeWhile(predicate func(r rune) bool) Parser[string] {
 		}
 
 		if !broken {
-			return "", "", errors.New("TakeWhile: predicate never returned false")
+			// If we didn't break the loop, the predicate never returned false
+			// so just return the whole input
+			return input, "", nil
 		}
 
 		return input[:end], input[end:], nil
@@ -203,9 +206,10 @@ func TakeWhile(predicate func(r rune) bool) Parser[string] {
 //
 // If the input is empty or predicate == nil, an error will be returned.
 //
-// If the predicate doesn't return true before the entire input is consumed, an error will be returned.
+// If the predicate never returns true, the entire input will be returned as the value
+// with no remainder.
 //
-// A predicate that never returns false will also return an error.
+// A predicate that never returns false will return an error.
 func TakeUntil(predicate func(r rune) bool) Parser[string] {
 	return func(input string) (string, string, error) {
 		if input == "" {
@@ -239,7 +243,7 @@ func TakeUntil(predicate func(r rune) bool) Parser[string] {
 		}
 
 		if !broken {
-			return "", "", errors.New("TakeUntil: predicate never returned true")
+			return input, "", nil
 		}
 
 		return input[:end], input[end:], nil
@@ -280,8 +284,8 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 		}
 
 		// Does the predicate ever return true? Quick failure case
-		if i := strings.IndexFunc(input, predicate); i == -1 {
-			return "", "", errors.New("TakeWhileBetween: predicate matched no chars in input")
+		if strings.IndexFunc(input, predicate) == -1 {
+			return "", "", errors.New("TakeWhileBetween: predicate never returned true")
 		}
 
 		index := -1 // Index of last char for which predicate returns true
