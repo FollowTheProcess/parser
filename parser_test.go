@@ -1771,6 +1771,82 @@ func TestMany(t *testing.T) {
 	}
 }
 
+func TestCount(t *testing.T) {
+	type test[T any] struct {
+		p         parser.Parser[T] // The parser to apply
+		name      string           // Identifying test case name
+		input     string           // Input to the parser
+		remainder string           // Expected remainder after parsing
+		err       string           // The expected error message, if there was one
+		value     []T              // The expected value after parsing
+		count     int              // Number of times to apply p to input
+		wantErr   bool             // Whether or not we wanted an error
+	}
+
+	tests := []test[string]{
+		{
+			name:      "empty input",
+			input:     "",
+			p:         parser.Take(2),
+			count:     2,
+			value:     nil,
+			remainder: "",
+			wantErr:   true,
+			err:       "Count: parser failed: Take: cannot take from empty input",
+		},
+		{
+			name:      "take pairs",
+			input:     "123456",
+			p:         parser.Take(2),
+			count:     3,
+			value:     []string{"12", "34", "56"},
+			remainder: "",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "input too short",
+			input:     "abcabcabc",
+			p:         parser.Exact("abc"),
+			count:     4,
+			value:     nil,
+			remainder: "",
+			wantErr:   true,
+			err:       "Count: parser failed: Exact: cannot match on empty input",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.Count(tt.p, tt.count)(tt.input)
+
+			// Can't use the helper as []string is not comparable
+
+			// Should only error if we wanted one
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("\nGot error:\t%v\nWanted error:\t%v\n", err, tt.wantErr)
+			}
+
+			// If we did get an error, the message should match what we expect
+			if err != nil {
+				if msg := err.Error(); msg != tt.err {
+					t.Fatalf("\nError message:\t%q\nWanted:\t%q\n", msg, tt.err)
+				}
+			}
+
+			// The value should be as expected
+			if !reflect.DeepEqual(value, tt.value) {
+				t.Errorf("\nValue:\t%#v\nWanted:\t%#v\n", value, tt.value)
+			}
+
+			// Likewise the remainder
+			if remainder != tt.remainder {
+				t.Errorf("\nRemainder:\t%q\nWanted:\t%q\n", remainder, tt.remainder)
+			}
+		})
+	}
+}
+
 func ExampleTake() {
 	input := "Hello I am some input for you to parser"
 
@@ -2020,6 +2096,21 @@ func ExampleMany() {
 	fmt.Printf("Remainder: %q\n", remainder)
 
 	// Output: Value: []string{"1234", "abcd", "\t\n", "日", "ð", "本"}
+	// Remainder: "rest..."
+}
+
+func ExampleCount() {
+	input := "12345678rest..." // Pairs of digits with a bit on the end
+
+	value, remainder, err := parser.Count(parser.Take(2), 4)(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value: %#v\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value: []string{"12", "34", "56", "78"}
 	// Remainder: "rest..."
 }
 

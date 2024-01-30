@@ -199,3 +199,15 @@ func BenchmarkMany(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkCount(b *testing.B) {
+	input := "abcabcabc"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.Count(parser.Exact("abc"), 3)(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
