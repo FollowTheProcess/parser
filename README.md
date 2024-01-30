@@ -74,7 +74,7 @@ func main() {
 	}
 
 	// We want 3 hex pairs
-	pairs, _, err := parser.Many(hexPair, hexPair, hexPair)(colour)
+	pairs, _, err := parser.Count(hexPair, 3)(colour)
 	if err != nil {
 		log.Fatalln(err)
 	}
