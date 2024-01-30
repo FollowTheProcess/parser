@@ -593,7 +593,7 @@ func Try[T any](parsers ...Parser[T]) Parser[T] {
 	}
 }
 
-// Many returns a [Parser] that chains a series of sub-parsers, passing the remainder from one
+// Many returns a [Parser] that calls a series of sub-parsers, passing the remainder from one
 // as input to the next and returning a slice of values; one from each parser, and any remaining input
 // after applying all the parsers.
 //
@@ -612,6 +612,32 @@ func Many[T any](parsers ...Parser[T]) Parser[[]T] {
 			value, remainder, err := parser(nextInput)
 			if err != nil {
 				return nil, "", fmt.Errorf("Many: sub parser failed: %w", err)
+			}
+			values = append(values, value)
+			nextInput = remainder
+			finalRemainder = remainder
+		}
+
+		return values, finalRemainder, nil
+	}
+}
+
+// Count returns a [Parser] that applies another parser a certain number of times,
+// returning the values in a slice along with any remaining input.
+//
+// If the parser fails or the input is exhausted before the parser has been applied
+// the requested number of times, an error will be returned.
+func Count[T any](parser Parser[T], count int) Parser[[]T] {
+	return func(input string) ([]T, string, error) {
+		values := make([]T, 0, count)
+
+		nextInput := input        // The input to the next parser in the loop, starts as our overall input
+		var finalRemainder string // The final remainder to eventually return, updated with each parser
+
+		for i := 0; i < count; i++ {
+			value, remainder, err := parser(nextInput)
+			if err != nil {
+				return nil, "", fmt.Errorf("Count: parser failed: %w", err)
 			}
 			values = append(values, value)
 			nextInput = remainder
