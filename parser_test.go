@@ -587,11 +587,11 @@ func TestTakeWhile(t *testing.T) {
 		{
 			name:      "predicate never returns false",
 			input:     "123456", // All digits
-			value:     "",
+			value:     "123456",
 			remainder: "",
 			predicate: unicode.IsDigit, // True for every char in input
-			wantErr:   true,
-			err:       "TakeWhile: predicate never returned false",
+			wantErr:   false,
+			err:       "",
 		},
 		{
 			name:      "predicate never returns true",
@@ -761,7 +761,7 @@ func TestTakeWhileBetween(t *testing.T) {
 			value:     "",
 			remainder: "",
 			wantErr:   true,
-			err:       "TakeWhileBetween: predicate matched no chars in input",
+			err:       "TakeWhileBetween: predicate never returned true",
 		},
 		{
 			name:  "unicode",
@@ -842,11 +842,11 @@ func TestTakeUntil(t *testing.T) {
 		{
 			name:      "predicate never returns true",
 			input:     "fixed length input",
-			value:     "",
+			value:     "fixed length input",
 			remainder: "",
 			predicate: func(r rune) bool { return false },
-			wantErr:   true,
-			err:       "TakeUntil: predicate never returned true",
+			wantErr:   false,
+			err:       "",
 		},
 		{
 			name:      "predicate never returns false",
