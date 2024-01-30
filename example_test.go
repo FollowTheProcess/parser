@@ -17,7 +17,7 @@ type RGB struct {
 
 // fromHex parses a string into a hex digit.
 func fromHex(s string) (int, error) {
-	hx, err := strconv.ParseUint(s, 16, 64)
+	hx, err := strconv.ParseInt(s, 16, 64)
 	return int(hx), err
 }
 
