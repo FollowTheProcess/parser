@@ -9,9 +9,6 @@
 
 Simple, fast, zero-allocation [combinatorial parsing] with Go
 
-> [!WARNING]
-> **Parser is in early development and is not yet ready for use**
-
 ## Project Description
 
 `parser` is intended to be a simple, expressive and easy to use API for all your text parsing needs. It aims to be:
