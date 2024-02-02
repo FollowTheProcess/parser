@@ -288,7 +288,7 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 			return "", "", errors.New("TakeWhileBetween: predicate never returned true")
 		}
 
-		index := -1 // Index of last char for which predicate returns true
+		index := 0 // Index of last char for which predicate returns true
 		for pos, char := range input {
 			if !predicate(char) {
 				break
@@ -296,13 +296,10 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 			// Add the byte width of the char in question because the next char is the
 			// first one where predicate(char) == false, that's where we want to cut
 			// the string
-			index = pos + utf8.RuneLen(char)
-		}
-
-		// This is *extremely* rare and I only found it with fuzz testing! I'm still not entirely
-		// sure why this can happen, but this is a best stab at explaining the error
-		if index == -1 {
-			return "", "", errors.New("TakeWhileBetween: invalid utf-8 byte split")
+			runeLen := utf8.RuneLen(char)
+			if runeLen != -1 {
+				index = pos + utf8.RuneLen(char)
+			}
 		}
 
 		// If we have an index, our job now is to return whichever is longest out of

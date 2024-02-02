@@ -687,7 +687,7 @@ func TestTakeWhileBetween(t *testing.T) {
 			err:       "",
 		},
 		{
-			name:      "fuzz failure",
+			name:      "fuzz failure", // Now correctly handled!
 			input:     "\U0001925e0",
 			lower:     9,
 			upper:     83,
@@ -695,7 +695,7 @@ func TestTakeWhileBetween(t *testing.T) {
 			value:     "",
 			remainder: "",
 			wantErr:   true,
-			err:       "TakeWhileBetween: invalid utf-8 byte split",
+			err:       "TakeWhileBetween: predicate matched only 0 chars (), below lower limit (9)",
 		},
 		{
 			name:      "nil predicate",
