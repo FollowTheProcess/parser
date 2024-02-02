@@ -1492,6 +1492,109 @@ func TestNotAny(t *testing.T) {
 	}
 }
 
+func TestOptional(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		match     string
+		value     string
+		remainder string
+		err       string
+		wantErr   bool
+	}{
+		{
+			name:      "empty input",
+			input:     "",
+			match:     "something",
+			value:     "",
+			remainder: "",
+			err:       "Optional: input text is empty",
+			wantErr:   true,
+		},
+		{
+			name:      "empty match",
+			input:     "some input",
+			match:     "",
+			value:     "",
+			remainder: "",
+			err:       "Optional: match must not be empty",
+			wantErr:   true,
+		},
+		{
+			name:      "empty input and match",
+			input:     "",
+			match:     "",
+			value:     "",
+			remainder: "",
+			err:       "Optional: input text is empty",
+			wantErr:   true,
+		},
+		{
+			name:      "bad utf-8",
+			input:     "\xf8\xa1\xa1\xa1\xa1",
+			match:     "something",
+			value:     "",
+			remainder: "",
+			err:       "Optional: input not valid utf-8",
+			wantErr:   true,
+		},
+		{
+			name:      "option present",
+			input:     "v1.2.3", // v is optional, not an error if it's not there
+			match:     "v",
+			value:     "v",
+			remainder: "1.2.3",
+			err:       "",
+			wantErr:   false,
+		},
+		{
+			name:      "option present utf-8",
+			input:     "語ç日ð本Ê語",
+			match:     "語ç日",
+			value:     "語ç日",
+			remainder: "ð本Ê語",
+			err:       "",
+			wantErr:   false,
+		},
+		{
+			name:      "option not present",
+			input:     "1.2.3", // v is optional, not an error if it's not there
+			match:     "v",
+			value:     "",
+			remainder: "1.2.3",
+			err:       "",
+			wantErr:   false,
+		},
+		{
+			name:      "option not present utf-8",
+			input:     "ð本Ê語",
+			match:     "語ç日",
+			value:     "",
+			remainder: "ð本Ê語",
+			err:       "",
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			value, remainder, err := parser.Optional(tt.match)(tt.input)
+
+			result := parserTest[string]{
+				gotValue:      value,
+				gotRemainder:  remainder,
+				gotErr:        err,
+				wantValue:     tt.value,
+				wantRemainder: tt.remainder,
+				wantErr:       tt.wantErr,
+				wantErrMsg:    tt.err,
+			}
+
+			testParser(t, result)
+		})
+	}
+}
+
 func TestMap(t *testing.T) {
 	type test[T1, T2 any] struct {
 		name      string               // Identifying test case name
@@ -2040,6 +2143,22 @@ func ExampleNotAnyOf() {
 
 	// Output: Value: "69 "
 	// Remainder: "is a number"
+}
+
+func ExampleOptional() {
+	input := "12.6.7-rc.2" // A semver, but could have an optional v
+
+	// Doesn't matter...
+	value, remainder, err := parser.Optional("v")(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Value: %q\n", value)
+	fmt.Printf("Remainder: %q\n", remainder)
+
+	// Output: Value: ""
+	// Remainder: "12.6.7-rc.2"
 }
 
 func ExampleMap() {
