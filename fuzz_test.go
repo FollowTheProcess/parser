@@ -114,6 +114,61 @@ func FuzzTakeTo(f *testing.F) {
 	})
 }
 
+func FuzzOneOf(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomString(rand.Intn(10)))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, chars string) {
+		value, remainder, err := parser.OneOf(chars)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzNoneOf(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomString(rand.Intn(10)))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, chars string) {
+		value, remainder, err := parser.NoneOf(chars)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzAnyOf(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomString(rand.Intn(10)))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, chars string) {
+		value, remainder, err := parser.AnyOf(chars)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzNotAnyOf(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomString(rand.Intn(10)))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, chars string) {
+		value, remainder, err := parser.NotAnyOf(chars)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzOptional(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomString(5))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, match string) {
+		value, remainder, err := parser.Optional(match)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
 // fuzzParser is a helper that asserts empty value and remainders were returned if the
 // err was not nil.
 func fuzzParser[T any](t *testing.T, value T, remainder string, err error) {
