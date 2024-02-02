@@ -156,6 +156,19 @@ func BenchmarkNotAnyOf(b *testing.B) {
 	}
 }
 
+func BenchmarkOptional(b *testing.B) {
+	input := "v1.2.3-rc.1+build.123"
+	option := "v"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _, err := parser.Optional(option)(input)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkMap(b *testing.B) {
 	input := "Hello, World!"
 

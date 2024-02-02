@@ -530,6 +530,36 @@ func NotAnyOf(chars string) Parser[string] {
 	}
 }
 
+// Optional returns a [Parser] that recognises an optional exact string from the start of input.
+//
+// If the match is there, it is returned as the value with the remainder being the remaining input,
+// if the match is not there, the entire input is returned as the remainder with no value and no error.
+//
+// If the input is empty or invalid utf-8, then an error will be returned.
+func Optional(match string) Parser[string] {
+	return func(input string) (string, string, error) {
+		if input == "" {
+			return "", "", errors.New("Optional: input text is empty")
+		}
+
+		if !utf8.ValidString(input) {
+			return "", "", errors.New("Optional: input not valid utf-8")
+		}
+
+		if match == "" {
+			return "", "", errors.New("Optional: match must not be empty")
+		}
+
+		start := strings.Index(input, match)
+		if start != 0 {
+			// The optional match isn't at the start of the string
+			return "", input, nil
+		}
+
+		return match, input[len(match):], nil
+	}
+}
+
 // Map returns a [Parser] that applies a function to the result of another parser.
 //
 // It is particularly useful for parsing a section of string input, then converting
