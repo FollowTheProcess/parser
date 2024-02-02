@@ -64,7 +64,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Run Fuzz Tests
-        run: go test -fuzz ${{ matrix.fuzz-target }} -fuzztime 1m
+        run: go test -fuzz "^${{ matrix.fuzz-target }}$" -fuzztime 1m
 
   cov:
     name: CodeCov
