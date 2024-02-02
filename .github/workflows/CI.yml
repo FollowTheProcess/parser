@@ -41,6 +41,38 @@ jobs:
       - name: Run Tests
         run: go test -race ./...
 
+  fuzz:
+    name: Fuzz
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        fuzz-target:
+          - FuzzTake
+          - FuzzExact
+          - FuzzExactCaseInsensitive
+          - FuzzChar
+          - FuzzTakeWhile
+          - FuzzTakeUntil
+          - FuzzTakeWhileBetween
+          - FuzzTakeTo
+          - FuzzOneOf
+          - FuzzNoneOf
+          - FuzzAnyOf
+          - FuzzNotAnyOf
+          - FuzzOptional
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run Fuzz Tests
+        run: go test -fuzz "^${{ matrix.fuzz-target }}$" -fuzztime 1m
+
   cov:
     name: CodeCov
     runs-on: ubuntu-latest

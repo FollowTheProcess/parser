@@ -299,10 +299,15 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 			index = pos + utf8.RuneLen(char)
 		}
 
+		// This is *extremely* rare and I only found it with fuzz testing! I'm still not entirely
+		// sure why this can happen, but this is a best stab at explaining the error
+		if index == -1 {
+			return "", "", errors.New("TakeWhileBetween: invalid utf-8 byte split")
+		}
+
 		// If we have an index, our job now is to return whichever is longest out of
 		// the sequence for which the predicate returned true, or the entire input
 		// up to the upper limit of chars
-
 		startToIndex := input[:index]
 		n := utf8.RuneCountInString(startToIndex)
 
