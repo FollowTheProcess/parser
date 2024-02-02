@@ -53,6 +53,8 @@ jobs:
           - FuzzChar
           - FuzzTakeWhile
           - FuzzTakeUntil
+          - FuzzTakeWhileBetween
+          - FuzzTakeTo
 
     steps:
       - name: Checkout Code

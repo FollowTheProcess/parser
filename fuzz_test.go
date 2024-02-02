@@ -92,6 +92,28 @@ func FuzzTakeUntil(f *testing.F) {
 	})
 }
 
+func FuzzTakeWhileBetween(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, rand.Intn(10), rand.Intn(10))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, lower, upper int) {
+		value, remainder, err := parser.TakeWhileBetween(lower, upper, unicode.IsGraphic)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzTakeTo(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomString(5))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, match string) {
+		value, remainder, err := parser.TakeTo(match)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
 // fuzzParser is a helper that asserts empty value and remainders were returned if the
 // err was not nil.
 func fuzzParser[T any](t *testing.T, value T, remainder string, err error) {

@@ -676,6 +676,28 @@ func TestTakeWhileBetween(t *testing.T) {
 			err:       "TakeWhileBetween: input not valid utf-8",
 		},
 		{
+			name:      "emoji",
+			input:     "✅🛠️🧠⚡️⚠️😎🪜",
+			lower:     6,
+			upper:     8,
+			predicate: unicode.IsGraphic,
+			value:     "✅🛠️🧠⚡️⚠️",
+			remainder: "😎🪜",
+			wantErr:   false,
+			err:       "",
+		},
+		{
+			name:      "fuzz failure",
+			input:     "\U0001925e0",
+			lower:     9,
+			upper:     83,
+			predicate: unicode.IsGraphic,
+			value:     "",
+			remainder: "",
+			wantErr:   true,
+			err:       "TakeWhileBetween: invalid utf-8 byte split",
+		},
+		{
 			name:      "nil predicate",
 			input:     "some valid input",
 			lower:     0, // Doesn't matter
