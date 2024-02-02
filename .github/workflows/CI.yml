@@ -49,6 +49,10 @@ jobs:
         fuzz-target:
           - FuzzTake
           - FuzzExact
+          - FuzzExactCaseInsensitive
+          - FuzzChar
+          - FuzzTakeWhile
+          - FuzzTakeUntil
 
     steps:
       - name: Checkout Code

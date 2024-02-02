@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"reflect"
 	"testing"
+	"unicode"
 
 	"github.com/FollowTheProcess/parser"
 )
@@ -47,6 +48,52 @@ func FuzzExact(f *testing.F) {
 	})
 }
 
+func FuzzExactCaseInsensitive(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomString(5))
+	}
+
+	f.Fuzz(func(t *testing.T, input string, match string) {
+		value, remainder, err := parser.ExactCaseInsensitive(match)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzChar(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item, randomRune())
+	}
+
+	f.Fuzz(func(t *testing.T, input string, char rune) {
+		value, remainder, err := parser.Char(char)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzTakeWhile(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		value, remainder, err := parser.TakeWhile(unicode.IsLetter)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+func FuzzTakeUntil(f *testing.F) {
+	for _, item := range corpus {
+		f.Add(item)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		value, remainder, err := parser.TakeUntil(unicode.IsSpace)(input)
+		fuzzParser(t, value, remainder, err)
+	})
+}
+
+// fuzzParser is a helper that asserts empty value and remainders were returned if the
+// err was not nil.
 func fuzzParser[T any](t *testing.T, value T, remainder string, err error) {
 	t.Helper()
 
@@ -63,10 +110,16 @@ func fuzzParser[T any](t *testing.T, value T, remainder string, err error) {
 	}
 }
 
+// generate a random utf-8 string of length n.
 func randomString(n int) string {
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = chars[rand.Intn(len(chars))]
 	}
 	return string(b)
+}
+
+// generate a random utf-8 rune.
+func randomRune() rune {
+	return chars[rand.Intn(len(chars))]
 }
