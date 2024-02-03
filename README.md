@@ -14,7 +14,7 @@ Simple, fast, zero-allocation [combinatorial parsing] with Go
 `parser` is intended to be a simple, expressive and easy to use API for all your text parsing needs. It aims to be:
 
 - **Fast:** Performant text parsing can be tricky, `parser` aims to be as fast as possible without compromising safety or error handling. Every parser function has a benchmark and has been written with performance in mind, almost none of them allocate on the heap ⚡️
-- **Correct:** You get the correct behaviour at all times, on any valid UTF-8 text. Errors are well handled and reported for easy debugging. 100% test coverage.
+- **Correct:** You get the correct behaviour at all times, on any valid UTF-8 text. Errors are well handled and reported for easy debugging. 100% test coverage and every base level parsing function is Fuzzed.
 - **Intuitive:** Some parser combinator libraries are tricky to wrap your head around, I want `parser` to be super simple to use so that anyone can pick it up and be productive quickly
 - **Well Documented:** Every combinator in `parser` has a comprehensive doc comment describing it's entire behaviour, as well as an executable example of its use
 
