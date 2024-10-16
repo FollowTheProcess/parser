@@ -1867,7 +1867,7 @@ func TestMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			value, remainder, err := parser.Many(tt.parsers...)(tt.input)
+			value, remainder, err := parser.Chain(tt.parsers...)(tt.input)
 
 			// Can't use the helper as []string is not comparable
 
@@ -2217,10 +2217,10 @@ func ExampleTry() {
 	// Remainder: "abc日ð本Ê語"
 }
 
-func ExampleMany() {
+func ExampleChain() {
 	input := "1234abcd\t\n日ð本rest..."
 
-	value, remainder, err := parser.Many(
+	value, remainder, err := parser.Chain(
 		// Can do this is a number of ways, but here's one!
 		parser.TakeWhile(unicode.IsDigit),
 		parser.Exact("abcd"),
