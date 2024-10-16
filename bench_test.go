@@ -203,7 +203,7 @@ func BenchmarkMany(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		_, _, err := parser.Many(
+		_, _, err := parser.Chain(
 			parser.Take(4),
 			parser.TakeWhile(unicode.IsDigit),
 		)(input)

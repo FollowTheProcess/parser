@@ -625,15 +625,15 @@ func Try[T any](parsers ...Parser[T]) Parser[T] {
 	}
 }
 
-// Many returns a [Parser] that calls a series of sub-parsers, passing the remainder from one
+// Chain returns a [Parser] that calls a series of sub-parsers, passing the remainder from one
 // as input to the next and returning a slice of values; one from each parser, and any remaining input
 // after applying all the parsers.
 //
 // If any of the parsers fail, an error will be returned.
 //
-// Note: Because Many takes a variadic argument and returns a slice, it is one of the only parser functions
+// Note: Because Chain takes a variadic argument and returns a slice, it is one of the only parser functions
 // to allocate on the heap.
-func Many[T any](parsers ...Parser[T]) Parser[[]T] {
+func Chain[T any](parsers ...Parser[T]) Parser[[]T] {
 	return func(input string) ([]T, string, error) {
 		values := make([]T, 0, len(parsers))
 
