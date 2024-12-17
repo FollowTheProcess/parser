@@ -82,7 +82,7 @@ jobs:
         id: set-matrix
         shell: bash
         run: |
-          MATRIX=$(go test -list ^Fuzz -run ^$ | grep '^Fuzz' | jq --raw-input --slurp 'split("\n") | map(select(length > 0))')
+          MATRIX=$(go test -list ^Fuzz -run ^$ | grep '^Fuzz' | jq --raw-input --slurp --compact-output 'split("\n") | map(select(length > 0))')
 
           echo "matrix=$MATRIX"
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
