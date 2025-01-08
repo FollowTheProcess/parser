@@ -18,5 +18,3 @@ jobs:
     permissions:
       contents: read
     uses: FollowTheProcess/ci/.github/workflows/Go.yml@main
-    with:
-      test-flags: -v
