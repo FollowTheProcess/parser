@@ -4,7 +4,7 @@ package parser_test
 // cases we haven't handled, and to try and ensure that no parser ever panics.
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"reflect"
 	"testing"
 	"unicode"
@@ -42,7 +42,7 @@ func FuzzExact(f *testing.F) {
 		f.Add(item, randomString(5))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, match string) {
+	f.Fuzz(func(t *testing.T, input, match string) {
 		value, remainder, err := parser.Exact(match)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -53,7 +53,7 @@ func FuzzExactCaseInsensitive(f *testing.F) {
 		f.Add(item, randomString(5))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, match string) {
+	f.Fuzz(func(t *testing.T, input, match string) {
 		value, remainder, err := parser.ExactCaseInsensitive(match)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -94,7 +94,7 @@ func FuzzTakeUntil(f *testing.F) {
 
 func FuzzTakeWhileBetween(f *testing.F) {
 	for _, item := range corpus {
-		f.Add(item, rand.Intn(10), rand.Intn(10))
+		f.Add(item, rand.IntN(10), rand.IntN(10))
 	}
 
 	f.Fuzz(func(t *testing.T, input string, lower, upper int) {
@@ -108,7 +108,7 @@ func FuzzTakeTo(f *testing.F) {
 		f.Add(item, randomString(5))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, match string) {
+	f.Fuzz(func(t *testing.T, input, match string) {
 		value, remainder, err := parser.TakeTo(match)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -116,10 +116,10 @@ func FuzzTakeTo(f *testing.F) {
 
 func FuzzOneOf(f *testing.F) {
 	for _, item := range corpus {
-		f.Add(item, randomString(rand.Intn(10)))
+		f.Add(item, randomString(rand.IntN(10)))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, chars string) {
+	f.Fuzz(func(t *testing.T, input, chars string) {
 		value, remainder, err := parser.OneOf(chars)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -127,10 +127,10 @@ func FuzzOneOf(f *testing.F) {
 
 func FuzzNoneOf(f *testing.F) {
 	for _, item := range corpus {
-		f.Add(item, randomString(rand.Intn(10)))
+		f.Add(item, randomString(rand.IntN(10)))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, chars string) {
+	f.Fuzz(func(t *testing.T, input, chars string) {
 		value, remainder, err := parser.NoneOf(chars)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -138,10 +138,10 @@ func FuzzNoneOf(f *testing.F) {
 
 func FuzzAnyOf(f *testing.F) {
 	for _, item := range corpus {
-		f.Add(item, randomString(rand.Intn(10)))
+		f.Add(item, randomString(rand.IntN(10)))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, chars string) {
+	f.Fuzz(func(t *testing.T, input, chars string) {
 		value, remainder, err := parser.AnyOf(chars)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -149,10 +149,10 @@ func FuzzAnyOf(f *testing.F) {
 
 func FuzzNotAnyOf(f *testing.F) {
 	for _, item := range corpus {
-		f.Add(item, randomString(rand.Intn(10)))
+		f.Add(item, randomString(rand.IntN(10)))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, chars string) {
+	f.Fuzz(func(t *testing.T, input, chars string) {
 		value, remainder, err := parser.NotAnyOf(chars)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -163,7 +163,7 @@ func FuzzOptional(f *testing.F) {
 		f.Add(item, randomString(5))
 	}
 
-	f.Fuzz(func(t *testing.T, input string, match string) {
+	f.Fuzz(func(t *testing.T, input, match string) {
 		value, remainder, err := parser.Optional(match)(input)
 		fuzzParser(t, value, remainder, err)
 	})
@@ -191,12 +191,12 @@ func fuzzParser[T any](t *testing.T, value T, remainder string, err error) {
 func randomString(n int) string {
 	b := make([]rune, n)
 	for i := range b {
-		b[i] = chars[rand.Intn(len(chars))]
+		b[i] = chars[rand.IntN(len(chars))]
 	}
 	return string(b)
 }
 
 // generate a random utf-8 rune.
 func randomRune() rune {
-	return chars[rand.Intn(len(chars))]
+	return chars[rand.IntN(len(chars))]
 }
