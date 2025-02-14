@@ -1655,10 +1655,10 @@ func TestMap(t *testing.T) {
 			name:      "map fn error",
 			input:     "blah blah blah",
 			p:         parser.TakeUntil(unicode.IsSpace),
-			fn:        func(input string) (int, error) { return 0, errors.New("uh oh!") },
+			fn:        func(input string) (int, error) { return 0, errors.New("uh oh") },
 			value:     0,
 			remainder: "",
-			err:       "Map: fn returned error: uh oh!",
+			err:       "Map: fn returned error: uh oh",
 			wantErr:   true,
 		},
 		{
@@ -1776,7 +1776,7 @@ func TestTry(t *testing.T) {
 	}
 }
 
-func TestMany(t *testing.T) {
+func TestChain(t *testing.T) {
 	type test[T any] struct {
 		value     []T
 		name      string
@@ -1800,7 +1800,7 @@ func TestMany(t *testing.T) {
 			value:     nil,
 			remainder: "",
 			wantErr:   true,
-			err:       "Many: sub parser failed: Take: cannot take from empty input",
+			err:       "Chain: sub parser failed: Take: cannot take from empty input",
 		},
 		{
 			name:  "pairs of chars",
@@ -1831,7 +1831,7 @@ func TestMany(t *testing.T) {
 			value:     nil,
 			remainder: "",
 			wantErr:   true,
-			err:       "Many: sub parser failed: Take: cannot take from empty input",
+			err:       "Chain: sub parser failed: Take: cannot take from empty input",
 		},
 		{
 			name:  "combo",

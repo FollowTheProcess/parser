@@ -643,7 +643,7 @@ func Chain[T any](parsers ...Parser[T]) Parser[[]T] {
 		for _, parser := range parsers {
 			value, remainder, err := parser(nextInput)
 			if err != nil {
-				return nil, "", fmt.Errorf("Many: sub parser failed: %w", err)
+				return nil, "", fmt.Errorf("Chain: sub parser failed: %w", err)
 			}
 			values = append(values, value)
 			nextInput = remainder
@@ -666,7 +666,7 @@ func Count[T any](parser Parser[T], count int) Parser[[]T] {
 		nextInput := input        // The input to the next parser in the loop, starts as our overall input
 		var finalRemainder string // The final remainder to eventually return, updated with each parser
 
-		for i := 0; i < count; i++ {
+		for range count {
 			value, remainder, err := parser(nextInput)
 			if err != nil {
 				return nil, "", fmt.Errorf("Count: parser failed: %w", err)

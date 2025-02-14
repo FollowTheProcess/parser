@@ -2,3 +2,8 @@
 extend-ignore-identifiers-re = [
   "lengt*", # Intentional mispelling of length
 ]
+
+[default.extend-words]
+byt = "byt"           # Useful name as byte is a keyword in go
+decorder = "decorder" # Name of a Go linter
+importas = "importas" # Same
