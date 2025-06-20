@@ -9,7 +9,7 @@ import (
 	"testing"
 	"unicode"
 
-	"github.com/FollowTheProcess/parser"
+	"go.followtheprocess.codes/parser"
 )
 
 func TestTake(t *testing.T) {
