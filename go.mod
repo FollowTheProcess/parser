@@ -1,3 +1,3 @@
-module github.com/FollowTheProcess/parser
+module go.followtheprocess.codes/parser
 
 go 1.24

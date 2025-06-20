@@ -1,7 +1,7 @@
 // Package parser implements simple, yet expressive mechanisms for [combinatorial parsing] in Go.
 //
 // [combinatorial parsing]: https://en.wikipedia.org/wiki/Parser_combinator
-package parser
+package parser // import "go.followtheprocess.codes/parser"
 
 import (
 	"errors"

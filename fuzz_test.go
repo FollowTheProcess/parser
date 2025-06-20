@@ -9,7 +9,7 @@ import (
 	"testing"
 	"unicode"
 
-	"github.com/FollowTheProcess/parser"
+	"go.followtheprocess.codes/parser"
 )
 
 var chars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@£$%^&*()_+][';/.,]語ç日ð本Ê語")

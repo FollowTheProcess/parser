@@ -1,7 +1,7 @@
 # Parser
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/parser)](https://github.com/FollowTheProcess/parser)
-[![Go Reference](https://pkg.go.dev/badge/github.com/FollowTheProcess/parser.svg)](https://pkg.go.dev/github.com/FollowTheProcess/parser)
+[![Go Reference](https://pkg.go.dev/badge/go.followtheprocess.codes/parser.svg)](https://pkg.go.dev/go.followtheprocess.codes/parser)
 [![Go Report Card](https://goreportcard.com/badge/github.com/FollowTheProcess/parser)](https://goreportcard.com/report/github.com/FollowTheProcess/parser)
 [![GitHub](https://img.shields.io/github/v/release/FollowTheProcess/parser?logo=github&sort=semver)](https://github.com/FollowTheProcess/parser)
 [![CI](https://github.com/FollowTheProcess/parser/workflows/CI/badge.svg)](https://github.com/FollowTheProcess/parser/actions?query=workflow%3ACI)
@@ -21,7 +21,7 @@ Simple, fast, zero-allocation [combinatorial parsing] with Go
 ## Installation
 
 ```shell
-go get github.com/FollowTheProcess/parser@latest
+go get go.followtheprocess.codes/parser@latest
 ```
 
 ## Quickstart
@@ -32,61 +32,61 @@ Let's borrow the [nom] example and parse a hex colour!
 package main
 
 import (
-	"fmt"
-	"log"
-	"strconv"
+ "fmt"
+ "log"
+ "strconv"
 
-	"github.com/FollowTheProcess/parser"
+ "go.followtheprocess.codes/parser"
 )
 
 // RGB represents a colour.
 type RGB struct {
-	Red   int
-	Green int
-	Blue  int
+ Red   int
+ Green int
+ Blue  int
 }
 
 // fromHex parses a string into a hex digit.
 func fromHex(s string) (int, error) {
-	hx, err := strconv.ParseUint(s, 16, 64)
-	return int(hx), err
+ hx, err := strconv.ParseUint(s, 16, 64)
+ return int(hx), err
 }
 
 // hexPair is a parser that converts a hex string into it's integer value.
 func hexPair(colour string) (int, string, error) {
-	return parser.Map(
-		parser.Take(2),
-		fromHex,
-	)(colour)
+ return parser.Map(
+  parser.Take(2),
+  fromHex,
+ )(colour)
 }
 
 func main() {
-	// Let's parse this into an RGB
-	colour := "#2F14DF"
+ // Let's parse this into an RGB
+ colour := "#2F14DF"
 
-	// We don't actually care about the #
-	_, colour, err := parser.Char('#')(colour)
-	if err != nil {
-		log.Fatalln(err)
-	}
+ // We don't actually care about the #
+ _, colour, err := parser.Char('#')(colour)
+ if err != nil {
+  log.Fatalln(err)
+ }
 
-	// We want 3 hex pairs
-	pairs, _, err := parser.Count(hexPair, 3)(colour)
-	if err != nil {
-		log.Fatalln(err)
-	}
+ // We want 3 hex pairs
+ pairs, _, err := parser.Count(hexPair, 3)(colour)
+ if err != nil {
+  log.Fatalln(err)
+ }
 
-	if len(pairs) != 3 {
-		log.Fatalln("Not enough pairs")
-	}
+ if len(pairs) != 3 {
+  log.Fatalln("Not enough pairs")
+ }
 
-	rgb := RGB{
-		Red:   pairs[0],
-		Green: pairs[1],
-		Blue:  pairs[2],
-	}
+ rgb := RGB{
+  Red:   pairs[0],
+  Green: pairs[1],
+  Blue:  pairs[2],
+ }
 
-	fmt.Printf("%#v\n", rgb) // main.RGB{Red:47, Green:20, Blue:223}
+ fmt.Printf("%#v\n", rgb) // main.RGB{Red:47, Green:20, Blue:223}
 }
 
 ```

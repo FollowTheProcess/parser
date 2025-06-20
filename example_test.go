@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/FollowTheProcess/parser"
+	"go.followtheprocess.codes/parser"
 )
 
 // RGB represents a colour.
