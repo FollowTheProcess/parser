@@ -1,3 +1,3 @@
 module go.followtheprocess.codes/parser
 
-go 1.25
+go 1.26
