@@ -311,7 +311,12 @@ func TakeWhileBetween(lower, upper int, predicate func(r rune) bool) Parser[stri
 		if n < lower {
 			// The number of chars for which the predicate returned true is less
 			// than our lower limit, which is an error
-			return "", "", fmt.Errorf("TakeWhileBetween: predicate matched only %d chars (%s), below lower limit (%d)", n, startToIndex, lower)
+			return "", "", fmt.Errorf(
+				"TakeWhileBetween: predicate matched only %d chars (%s), below lower limit (%d)",
+				n,
+				startToIndex,
+				lower,
+			)
 		}
 
 		if n > upper {
